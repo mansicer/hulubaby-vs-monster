@@ -35,6 +35,14 @@
 
 
 
+## 单位仓库 `HvMFactory`
+
+> TODO: 将`HvMFactory`改为多个仓库. 角色, 弹道使用不同的仓库.
+
+负责不同单位的产生逻辑.
+
+
+
 ## 组件
 
 通过实现不同的组件, 反映创建出单位的不同能力.
@@ -130,7 +138,16 @@
 
 
 
-## 单位仓库 `HvMFactory`
+## 类型
 
-TODO: 将`HvMFactory`改为多个仓库. 角色, 弹道使用不同的仓库.
+### BasicEntityTypes
 
+单位在TypeComponent中的类型.
+
+### DetailedEntityType
+
+单位需要添加到DetailedTypeComponent中的类型.
+
+### CampType
+
+阵营信息, 单位需要添加到DetailedTypeComponent中的类型.
