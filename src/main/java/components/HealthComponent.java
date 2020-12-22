@@ -33,25 +33,21 @@ public class HealthComponent extends Component {
         }
     }
 
-    public int getHealth() {
-        return health;
-    }
-
-    public void setHealth(int health) {
-        this.health = health;
+    public void checkHealth() {
+        this.health = Math.min(this.health, maxHealth);
+        if (this.health <= 0) {
+            entity.removeFromWorld();
+        }
     }
 
     public void increaseHealth(int inc) {
         this.health += inc;
-        this.health = Math.max(this.health, maxHealth);
+        checkHealth();
     }
 
     public void decreaseHealth(int dec) {
         this.health -= dec;
-        if (this.health <= 0) {
-            entity.removeFromWorld();
-
-        }
+        checkHealth();
     }
 
     @Override

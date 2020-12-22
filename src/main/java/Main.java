@@ -1,12 +1,14 @@
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
-import com.almasb.fxgl.core.math.FXGLMath;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.physics.CollisionHandler;
-import components.*;
+import components.BulletComponent;
+import components.ControllableComponent;
+import components.DetailedTypeComponent;
+import components.HealthComponent;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -21,7 +23,7 @@ public class Main extends GameApplication {
     private static final String GameTitle = "Hulubabies vs Monsters";
     private static final int GameWidth = 1600;
     private static final int GameHeight = 900;
-    private static final String GameVersion = "0.0.1";
+    private static final String GameVersion = "0.0.2";
 
     private Optional<Entity> currentPlayer;
     private Optional<Polygon> playerIcon;
@@ -121,14 +123,17 @@ public class Main extends GameApplication {
                 var position = input.getMousePositionWorld();
                 var range = new Rectangle2D(position.getX() - 6, position.getY() - 10, 12, 20);
                 var entities = FXGL.getGameWorld().getEntitiesInRange(range);
-                if (entities.size() > 0) {
-                    if (currentPlayer.isPresent() && currentPlayer.get().isActive()) {
-                        playerIcon.ifPresent(polygon -> currentPlayer.get().getViewComponent().removeChild(polygon));
-                    }
 
-                    // TODO: choose the closest one
-                    currentPlayer = Optional.of(entities.get(0));
-                    geneartePlayerIcon(currentPlayer.get());
+                // TODO: choose the closest one
+                for (Entity entity: entities) {
+                    if (entity.getComponentOptional(ControllableComponent.class).isPresent()) {
+                        if (currentPlayer.isPresent() && currentPlayer.get().isActive()) {
+                            playerIcon.ifPresent(polygon -> currentPlayer.get().getViewComponent().removeChild(polygon));
+                        }
+                        currentPlayer = Optional.of(entity);
+                        geneartePlayerIcon(currentPlayer.get());
+                        break;
+                    }
                 }
             }
         }, MouseButton.PRIMARY);

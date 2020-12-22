@@ -24,6 +24,11 @@ public class ControllableComponent extends MovableComponent {
         dy = speedY * tpf;
         // only able to move when it is operable
         if (isOperable) {
+            if (speedX < 0) {
+                entity.setScaleX(-1);
+            } else if (speedX > 0) {
+                entity.setScaleX(1);
+            }
             if (!willBeOutOfBoundX(dx)) {
                 entity.translateX(dx);
             }
@@ -43,12 +48,10 @@ public class ControllableComponent extends MovableComponent {
 
     public void moveLeft() {
         speedX = -maxSpeed;
-        entity.setScaleX(-1);
     }
 
     public void moveRight() {
         speedX = maxSpeed;
-        entity.setScaleX(1);
     }
 
     public void stop() {

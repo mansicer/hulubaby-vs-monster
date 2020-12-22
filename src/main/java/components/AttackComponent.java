@@ -10,7 +10,6 @@ public class AttackComponent extends OperableComponent {
     protected double attackAnimationTime = 0.3;
     protected double attackBackSwingTime = 0.2;
     protected int damage = 0;
-    protected Optional<ControllableComponent> controllableComponent;
 
     AttackComponent(double attackAnimationTime, double attackBackSwingTime, int damage) {
         this.attackAnimationTime = attackAnimationTime;
@@ -18,21 +17,14 @@ public class AttackComponent extends OperableComponent {
         this.damage = damage;
     }
 
-    @Override
-    public void onAdded() {
-        controllableComponent = ComponentUtils.getControllableComponent(entity);
-    }
-
     public void attack() {
         if (isOperable) {
             disableOperation();
-            controllableComponent.ifPresent(OperableComponent::disableOperation);
             FXGL.getGameTimer().runOnceAfter(() -> {
                 doAttack();
             }, Duration.seconds(attackAnimationTime));
             FXGL.getGameTimer().runOnceAfter(() -> {
                 enableOperation();
-                controllableComponent.ifPresent(OperableComponent::enableOperation);
             }, Duration.seconds(attackAnimationTime + attackBackSwingTime));
         }
     }

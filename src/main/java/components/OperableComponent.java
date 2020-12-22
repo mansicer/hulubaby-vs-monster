@@ -10,8 +10,18 @@ public class OperableComponent extends Component {
     }
     public void enableOperation() {
         this.isOperable = true;
+        for (Component component : entity.getComponents()) {
+            if (component instanceof OperableComponent) {
+                ((OperableComponent) component).isOperable = true;
+            }
+        }
     }
     public void disableOperation() {
         this.isOperable = false;
+        for (Component component : entity.getComponents()) {
+            if (component instanceof OperableComponent) {
+                ((OperableComponent) component).isOperable = false;
+            }
+        }
     }
 }

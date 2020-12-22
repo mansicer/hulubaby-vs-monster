@@ -57,7 +57,8 @@ public class HvMFactory implements EntityFactory {
                 .type(BasicEntityTypes.BULLET)
                 .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.HuluBabyCamp))
                 .bbox(new HitBox(BoundingShape.box(30, 30)))
-                .with(new BulletComponent(speedX, speedY, damage, source))
+                .with(new MovableComponent(speedX, speedY))
+                .with(new BulletComponent(damage, source))
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
                 .collidable()
                 .build();
@@ -75,7 +76,8 @@ public class HvMFactory implements EntityFactory {
                 .type(BasicEntityTypes.BULLET)
                 .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.MonsterCamp))
                 .bbox(new HitBox(BoundingShape.box(30, 30)))
-                .with(new BulletComponent(speedX, speedY, damage, source))
+                .with(new MovableComponent(speedX, speedY))
+                .with(new BulletComponent(damage, source))
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
                 .collidable()
                 .build();

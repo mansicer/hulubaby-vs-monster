@@ -1,13 +1,13 @@
 package components;
 
 import com.almasb.fxgl.entity.Entity;
+import com.almasb.fxgl.entity.component.Component;
 
-public class BulletComponent extends MovableComponent {
+public class BulletComponent extends Component {
     Entity source;
     int damage;
 
-    public BulletComponent(int speedX, int speedY, int damage, Entity source) {
-        super(speedX, speedY);
+    public BulletComponent(int damage, Entity source) {
         this.damage = damage;
         this.source = source;
     }
