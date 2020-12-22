@@ -86,4 +86,20 @@ public class ControllableComponent extends MovableComponent {
         return false;
     }
 
+    public void controlOri(String ori){
+        switch (ori){
+            case "UP":
+                speedY = -1;
+                break;
+            case "DOWN":
+                speedY = 1;
+                break;
+            case "LEFT":
+                speedX = -1;
+                break;
+            case "RIGHT":
+                speedX = 1;
+                break;
+        }
+    }
 }

@@ -3,6 +3,7 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.EntityFactory;
 import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.Spawns;
+import com.almasb.fxgl.entity.components.IDComponent;
 import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.texture.AnimationChannel;
@@ -17,6 +18,8 @@ public class HvMFactory implements EntityFactory {
     public Entity newTestCharacter1(SpawnData data) {
         AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 1, 1);
         AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 0, 3);
+        String name = data.get("name");
+        int id = data.get("id");
         return FXGL.entityBuilder(data)
                 .type(BasicEntityTypes.PLAYER)
                 .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.HuluBabyCamp))
@@ -25,6 +28,7 @@ public class HvMFactory implements EntityFactory {
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
                 .with(new RangedAttackComponent(0.3, 0.3, 10, 500, "TestCharacter1Bullet"))
                 .with(new HealthComponent(100))
+                .with(new IDComponent(name,id))
                 .collidable()
                 .build();
     }
@@ -33,6 +37,8 @@ public class HvMFactory implements EntityFactory {
     public Entity newTestCharacter1Enemy(SpawnData data) {
         AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 1, 1);
         AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 0, 3);
+        String name = data.get("name");
+        int id = data.get("id");
         return FXGL.entityBuilder(data)
                 .type(BasicEntityTypes.PLAYER)
                 .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.MonsterCamp))
@@ -41,6 +47,7 @@ public class HvMFactory implements EntityFactory {
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
                 .with(new RangedAttackComponent(0.4, 0.3, 25, 300, "TestCharacter1Bullet-Enemy"))
                 .with(new HealthComponent(100))
+                .with(new IDComponent(name,id))
                 .collidable()
                 .build();
     }
