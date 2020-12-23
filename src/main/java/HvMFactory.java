@@ -59,6 +59,7 @@ public class HvMFactory implements EntityFactory {
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
+        int id = data.get("id");
         Entity source = data.get("source");
         return FXGL.entityBuilder(data)
                 .type(BasicEntityTypes.BULLET)
@@ -67,6 +68,7 @@ public class HvMFactory implements EntityFactory {
                 .with(new MovableComponent(speedX, speedY))
                 .with(new BulletComponent(damage, source))
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
+                .with(new IDComponent("",id))
                 .collidable()
                 .build();
     }

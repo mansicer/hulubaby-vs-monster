@@ -10,7 +10,7 @@ import java.util.Optional;
 public class RangedAttackComponent extends AttackComponent {
     int bulletSpeed = 0;
     String bulletEntityName;
-
+    int id = 0;
     public RangedAttackComponent(double attackAnimationTime, double attackBackSwingTime, int damage, int bulletSpeed, String bulletEntityName) {
         super(attackAnimationTime, attackBackSwingTime, damage);
         this.bulletEntityName = bulletEntityName;
@@ -25,6 +25,7 @@ public class RangedAttackComponent extends AttackComponent {
                         .put("speedY", 0)
                         .put("damage", damage)
                         .put("source", entity)
+                        .put("id",id++)
         );
     }
 }

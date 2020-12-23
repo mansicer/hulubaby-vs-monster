@@ -11,11 +11,7 @@ import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Connection;
 import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
-import components.BulletComponent;
-import components.ControllableComponent;
-import components.DetailedTypeComponent;
-import components.HealthComponent;
-import javafx.geometry.Point2D;
+import components.*;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -24,6 +20,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import network.OperateInfo;
+import network.OperateInfoBuilder;
 import types.BasicEntityTypes;
 import types.NetMsgTypes;
 import util.ComponentUtils;
@@ -158,7 +155,8 @@ public class Main extends GameApplication {
             @Override
             protected void onActionBegin() {
                 currentPlayer.ifPresent(player -> {
-                    ComponentUtils.getAttackComponent(player).ifPresent(c -> c.attack());
+//                    ComponentUtils.getAttackComponent(player).ifPresent(AttackComponent::attack);
+                    attackFunc(player);
                 });
             }
         }, KeyCode.A);
@@ -187,30 +185,47 @@ public class Main extends GameApplication {
 
     private void moveFunc(Entity player,String ori) {
         IDComponent idComponent = player.getComponent(IDComponent.class);
-        OperateInfo moveinfo = new OperateInfo(idComponent.getName(),idComponent.getId(),player.getX(),player.getY(),ori);
+//        OperateInfo moveinfo = new OperateInfo(idComponent.getName(),idComponent.getId(),player.getX(),player.getY(),ori);
+        OperateInfo moveinfo = new OperateInfoBuilder()
+                .name(idComponent.getName())
+                .id(idComponent.getId())
+                .position(player.getPosition())
+                .ori(ori)
+                .buildOperate();
         var bundle = new Bundle("");
         bundle.put("NetMsg",NetMsgTypes.MOVE);
-        bundle.put("data",moveinfo);
-        if (isServer){
-            server.broadcast(bundle);
-        }
-        else{
+        bundle.put("operateInfo",moveinfo);
+        if (!isServer){
             client.broadcast(bundle);
         }
     }
 
+    private void attackFunc(Entity player){
+        IDComponent idComponent = player.getComponent(IDComponent.class);
+        System.out.println(idComponent.getName());
+        OperateInfo playInfo = new OperateInfoBuilder()
+                .name(idComponent.getName())
+                .id(idComponent.getId())
+                .buildOperate();
+        var bundle = new Bundle("");
+        bundle.put("NetMsg",NetMsgTypes.ATTACK);
+        bundle.put("operateInfo",playInfo);
+        if(!isServer)
+            client.broadcast(bundle);
+    }
+
     private void stopFunc(Entity player){
         IDComponent idComponent = player.getComponent(IDComponent.class);
-        OperateInfo moveinfo = new OperateInfo(idComponent.getName(),idComponent.getId(),player.getX(),player.getY(),"");
+//        OperateInfo moveinfo = new OperateInfo(idComponent.getName(),idComponent.getId(),player.getX(),player.getY(),"");
+        OperateInfo stopinfo = new OperateInfoBuilder()
+                .name(idComponent.getName())
+                .id(idComponent.getId())
+                .position(player.getPosition())
+                .buildOperate();
         var bundle = new Bundle("");
         bundle.put("NetMsg", NetMsgTypes.STOP);
-        bundle.put("data",moveinfo);
-        if (isServer){
-            System.out.println(player.getX());
-            System.out.println(player.getY());
-            server.broadcast(bundle);
-        }
-        else{
+        bundle.put("operateInfo",stopinfo);
+        if (!isServer){
             client.broadcast(bundle);
         }
     }
@@ -231,10 +246,23 @@ public class Main extends GameApplication {
                 var typeB = b.getComponent(DetailedTypeComponent.class);
                 if (typeA.isEnemy(typeB)) {
                     int damage = a.getComponent(BulletComponent.class).getDamage();
-                    b.getComponent(HealthComponent.class).decreaseHealth(damage);
+                    if(isServer) {
+                        IDComponent idComponent = b.getComponent(IDComponent.class);
+                        OperateInfo operateInfo = new OperateInfoBuilder()
+                                .name(idComponent.getName())
+                                .id(idComponent.getId())
+                                .damage(damage)
+                                .buildOperate();
+                        var bundle = new Bundle("");
+                        bundle.put("NetMsg",NetMsgTypes.HIT);
+                        bundle.put("operateInfo",operateInfo);
+                        server.broadcast(bundle);
+                        b.getComponent(HealthComponent.class).decreaseHealth(damage);
+                        checkCurrentPlayerAlive();
+                    }
                     a.removeFromWorld();
-                    checkCurrentPlayerAlive();
                 }
+
             }
         });
     }
@@ -257,32 +285,30 @@ public class Main extends GameApplication {
 
     protected void handleMessage(Connection<Bundle> connection,Bundle bundle){
         NetMsgTypes nmt = bundle.get("NetMsg");
-        OperateInfo operateInfo = (OperateInfo)bundle.get("data");
+        OperateInfo operateInfo = (OperateInfo)bundle.get("operateInfo");
         String name = operateInfo.name;
         int id = operateInfo.id;
-        double x = operateInfo.x;
-        double y = operateInfo.y;
-        String ori = operateInfo.ori;
         var player = getGameWorld().getEntityByID(name,id);
         switch (nmt){
             case MOVE: {
                 if (isServer) {
                     player.ifPresent(p -> {
+                        String ori = operateInfo.ori;
                         moveOri(ori, p);
                         operateInfo.x = p.getX();
                         operateInfo.y = p.getY();
-                        bundle.put("data", operateInfo);
+                        bundle.put("operateInfo", operateInfo);
                         server.broadcast(bundle);
                     });
                 } else {
                     player.ifPresent(p -> {
-//                        moveOri(ori, p);
+                        double x = operateInfo.x;
+                        double y = operateInfo.y;
+                        String ori = operateInfo.ori;
                         p.getComponent(ControllableComponent.class).controlOri(ori);
-//                        System.out.println(p.getPosition().distance(x, y));
-//                        p.translateTowards(new Point2D(x, y), p.getPosition().distance(x, y));
                         System.out.println(x);
                         System.out.println(y);
-                        p.setAnchoredPosition(x,y);
+                        p.setPosition(x,y);
                     });
                 }
                 break;
@@ -293,19 +319,48 @@ public class Main extends GameApplication {
                         p.getComponent(ControllableComponent.class).stop();
                         operateInfo.x = p.getX();
                         operateInfo.y = p.getY();
-                        bundle.put("data", operateInfo);
+                        bundle.put("operateInfo", operateInfo);
                         server.broadcast(bundle);
                     });
                 }
                 else{
                     player.ifPresent(p -> {
+                        double x = operateInfo.x;
+                        double y = operateInfo.y;
                         p.getComponent(ControllableComponent.class).stop();
-                        p.translateTowards(new Point2D(x, y), p.getPosition().distance(x, y));
+                        p.setPosition(x,y);
                     });
                 }
                 break;
             }
-
+            case ATTACK:{
+                if(isServer){
+                    player.ifPresent(play->{
+                        ComponentUtils.getAttackComponent(play).ifPresent(c->{
+                            c.attack();
+                            server.broadcast(bundle);
+                        });
+                    });
+                }
+                else{
+                    player.ifPresent(play->{
+                        ComponentUtils.getAttackComponent(play).ifPresent(c->{
+                            c.attack();
+//                            server.broadcast(bundle);
+                        });
+                    });
+                }
+                break;
+            }
+            case HIT:{
+                if(!isServer){
+                    int damage = operateInfo.damage;
+                    player.ifPresent(p->{
+                        p.getComponent(HealthComponent.class).decreaseHealth(damage);
+                        checkCurrentPlayerAlive();
+                    });
+                }
+            }
         }
 
     }
