@@ -5,6 +5,8 @@ import com.almasb.fxgl.dsl.FXGL;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import util.ComponentUtils;
+import util.NetworkUtils;
+import util.PropertyUtils;
 
 import java.util.Optional;
 
@@ -21,14 +23,25 @@ public class AttackComponent extends OperableComponent {
     }
 
     public void attack() {
-        if (isOperable) {
-            disableOperation();
-            FXGL.getGameTimer().runOnceAfter(() -> {
-                doAttack();
-            }, Duration.seconds(attackAnimationTime));
-            FXGL.getGameTimer().runOnceAfter(() -> {
-                enableOperation();
-            }, Duration.seconds(attackAnimationTime + attackBackSwingTime));
+        if (NetworkUtils.isServer()) {
+            isAttacking = true;
+            if (isOperable) {
+                disableOperation();
+                FXGL.getGameTimer().runOnceAfter(() -> {
+                    doAttack();
+                }, Duration.seconds(attackAnimationTime));
+                FXGL.getGameTimer().runOnceAfter(() -> {
+                    enableOperation();
+                    isAttacking = false;
+                }, Duration.seconds(attackAnimationTime + attackBackSwingTime));
+            }
+        }
+        if (NetworkUtils.isClient()) {
+            NetworkUtils.getClient().getConnections().forEach(connection -> {
+                Bundle message = new Bundle("Action: attack");
+                message.put("playerID", PropertyUtils.getCurrentPlayerID());
+                NetworkUtils.getMultiplayerService().sendMessage(connection, message);
+            });
         }
     }
 

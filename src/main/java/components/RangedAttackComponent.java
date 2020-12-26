@@ -19,22 +19,13 @@ public class RangedAttackComponent extends AttackComponent {
 
     @Override
     protected void doAttack() {
-        if (NetworkUtils.isServer()) {
-            FXGL.spawn(bulletEntityName,
-                    new SpawnData(entity.getX(), entity.getY())
-                            .put("speedX", (int) (bulletSpeed * entity.getScaleX()))
-                            .put("speedY", 0)
-                            .put("damage", damage)
-                            .put("sourceID", EntityUtils.getNetworkID(entity))
-            );
-        }
-        if (NetworkUtils.isClient()) {
-            // TODO: request for attacking
-        }
+        FXGL.spawn(bulletEntityName,
+                new SpawnData(entity.getX(), entity.getY())
+                        .put("speedX", (int) (bulletSpeed * entity.getScaleX()))
+                        .put("speedY", 0)
+                        .put("damage", damage)
+                        .put("sourceID", EntityUtils.getNetworkID(entity))
+        );
     }
 
-    @Override
-    public void read(@NotNull Bundle bundle) {
-        super.read(bundle);
-    }
 }

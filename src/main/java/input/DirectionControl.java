@@ -1,9 +1,12 @@
 package input;
 
+import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.input.UserAction;
 import components.ControllableComponent;
 import util.EntityUtils;
+import util.NetworkUtils;
+import util.PropertyUtils;
 
 public class DirectionControl {
     public static class MoveUp extends UserAction {

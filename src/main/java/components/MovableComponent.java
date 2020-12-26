@@ -5,6 +5,7 @@ import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import org.jetbrains.annotations.NotNull;
+import util.NetworkUtils;
 
 public class MovableComponent extends OperableComponent implements SerializableComponent {
     protected int speedX = 0;
@@ -25,7 +26,9 @@ public class MovableComponent extends OperableComponent implements SerializableC
             }
             entity.translateX(speedX * tpf);
             entity.translateY(speedY * tpf);
-            if (checkOutOfBound()) {
+
+            // check out of bound entity, only server can remove
+            if (checkOutOfBound() && NetworkUtils.isServer()) {
                 entity.removeFromWorld();
             }
         }

@@ -3,6 +3,7 @@ package service;
 import com.almasb.fxgl.core.EngineService;
 import com.almasb.fxgl.core.math.Vec2;
 import com.almasb.fxgl.core.serialization.Bundle;
+import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.GameWorld;
 import com.almasb.fxgl.entity.SpawnData;
@@ -12,10 +13,12 @@ import com.almasb.fxgl.entity.components.BoundingBoxComponent;
 import com.almasb.fxgl.input.*;
 import com.almasb.fxgl.net.Connection;
 import com.almasb.fxgl.net.MessageHandler;
+import components.ControllableComponent;
 import components.NetworkIDComponent;
 import kotlin.collections.AbstractMutableList;
 import kotlin.collections.ArrayDeque;
 import org.jetbrains.annotations.NotNull;
+import util.ComponentUtils;
 import util.EntityUtils;
 
 import java.io.Serializable;
@@ -61,15 +64,15 @@ public class MultiplayerConnectionService extends EngineService {
     }
 
     public void updateReplicatedEntities(Connection<Bundle> connection, AbstractMutableList<Entity> entities){
-        var updateBundle = new Bundle("ENTITY_UPDATES_EVENT");
+        var removeIDs = new ArrayList<Integer>();
         var removeBundle = new Bundle("ENTITY_REMOVALS_EVENT");
-
         entities.forEach(entity -> {
-            var removeIDs = new ArrayList<Integer>();
+            var updateBundle = new Bundle("ENTITY_UPDATES_EVENT");
+
             NetworkIDComponent networkIDComponent = entity.getComponent(NetworkIDComponent.class);
             var networkID = networkIDComponent.getId();
 
-            if(entity.isActive()){
+            if(entity.isActive()) {
                 entity.getComponents().forEach(component -> {
                     if (checkComponentUpdatable(component)) {
                         packUpComponentBundle(updateBundle, (SerializableComponent) component);
@@ -77,25 +80,17 @@ public class MultiplayerConnectionService extends EngineService {
                 });
                 updateBundle.put("position",new Vec2(entity.getPosition()));
                 updateBundle.put("NetID",networkID);
-            }
-            else{
-                removeIDs.add(networkID);
-            }
-
-            if(!updateBundle.getData().isEmpty()){
                 connection.send(updateBundle);
             }
-            if(!removeIDs.isEmpty()){
-                removeBundle.put("removeIDs", removeIDs);
-                connection.send(removeBundle);
+            else {
+                removeIDs.add(networkID);
             }
-
-//            if(!entity.isActive()){ // 有待商榷
-//                entities.remove(entity);
-//                entity.removeFromWorld();
-//            }
-
         });
+        if(!removeIDs.isEmpty()){
+            removeBundle.put("removeIDs", removeIDs);
+            connection.send(removeBundle);
+        }
+        entities.removeIf(entity -> !entity.isActive());
     }
 
     public void spawn(Connection<Bundle> connection, Entity entity, SpawnData spawnData, String entityName){
@@ -140,7 +135,8 @@ public class MultiplayerConnectionService extends EngineService {
             else if(bundle.getName().startsWith("ENTITY_UPDATES_EVENT")){
                 int netID = bundle.get("NetID");
                 EntityUtils.getEntityByNetworkID(netID).ifPresent(entity -> {
-                    entity.setPosition((Vec2) bundle.get("position"));
+                    Vec2 position = bundle.get("position");
+                    entity.setPosition(position);
                     entity.getComponents().forEach(component -> {
                         if (checkComponentUpdatable(component)) {
                             unpackComponentBundle(bundle, (SerializableComponent) component);
@@ -156,9 +152,6 @@ public class MultiplayerConnectionService extends EngineService {
                     });
                 });
             }
-            else {
-                System.err.println("Unrecognized Bundle Name " + bundle.getName());
-            }
         });
     }
 
@@ -166,69 +159,56 @@ public class MultiplayerConnectionService extends EngineService {
         connection.addMessageHandlerFX(handler);
     }
 
-    public void sendMessage(Connection<Bundle> connection, String name, Map<String, Serializable> data) {
-        Bundle message = new Bundle(name);
-        message.getData().putAll(data);
+    public void sendMessage(Connection<Bundle> connection, Bundle message) {
         connection.send(message);
     }
 
-    public void addInputReplicationSender(Connection<Bundle> connection,Input input){
-        input.addTriggerListener(new TriggerListener() {
-            @Override
-            protected void onActionBegin(@NotNull Trigger trigger) {
-                var bundle = new Bundle("ActionBegin");
-                if(trigger.isKey()){
-                    var keyTrigger = (KeyTrigger)trigger;
-                    bundle.put("key", keyTrigger.getKey());
-                }
-                else{
-                    var mouseTrigger = (MouseTrigger)trigger;
-                    bundle.put("btn", mouseTrigger.getButton());
-                }
-                connection.send(bundle);
+    public void addInputReplicationSender(Connection<Bundle> connection, GameWorld gameWorld) {
+        connection.addMessageHandlerFX(((connection1, bundle) -> {
+            if (bundle.getName().equals("PlayerAllocation")) {
+                int id = bundle.get("playerID");
+                gameWorld.getProperties().setValue("CurrentPlayerID", id);
+                FXGL.getWorldProperties().setValue("CurrentPlayerID", id);
             }
-
-            @Override
-            protected void onAction(@NotNull Trigger trigger) {
-                super.onAction(trigger);
-            }
-
-            @Override
-            protected void onActionEnd(@NotNull Trigger trigger) {
-                var bundle = new Bundle("ActionEnd");
-                if(trigger.isKey()){
-                    var keyTrigger = (KeyTrigger)trigger;
-                    bundle.put("key", keyTrigger.getKey());
-                }
-                else{
-                    var mouseTrigger = (MouseTrigger)trigger;
-                    bundle.put("btn",mouseTrigger.getButton());
-                }
-                connection.send(bundle);
-            }
-        });
+        }));
     }
 
-    public void addInputReplicationReceiver(Connection<Bundle> connection, Input input){
+    public void addInputReplicationReceiver(Connection<Bundle> connection) {
         connection.addMessageHandlerFX((connection1, bundle) -> {
-            switch (bundle.getName()){
-                case "ActionBegin":
-                case "ActionEnd": {
-                    var isKeyTrigger = bundle.exists("key");
-                    Trigger trigger ;
-                    if(isKeyTrigger){
-                        trigger = new KeyTrigger(bundle.get("key"));
-                    }
-                    else{
-                        trigger =  new MouseTrigger(bundle.get("btn"));
-                    }
-
-                    if(bundle.getName().equals("ActionBegin")){
-                        input.mockTriggerPress(trigger);
-                    }
-                    else{
-                        input.mockTriggerRelease(trigger);
-                    }
+            if (bundle.getName().startsWith("Action: ")) {
+                int id = bundle.get("playerID");
+                String actionName = bundle.getName().substring("Action: ".length());
+                if (actionName.equals("moveUp")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        entity.getComponent(ControllableComponent.class).moveUp();
+                    });
+                } else if (actionName.equals("moveDown")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        entity.getComponent(ControllableComponent.class).moveDown();
+                    });
+                }  else if (actionName.equals("moveLeft")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        entity.getComponent(ControllableComponent.class).moveLeft();
+                    });
+                } else if (actionName.equals("moveRight")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        entity.getComponent(ControllableComponent.class).moveRight();
+                    });
+                } else if (actionName.equals("stopX")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        entity.getComponent(ControllableComponent.class).stopX();
+                    });
+                } else if (actionName.equals("stopY")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        entity.getComponent(ControllableComponent.class).stopY();
+                    });
+                } else if (actionName.equals("attack")) {
+                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                        ComponentUtils.getAttackComponent(entity).get().attack();
+                    });
+                }
+                else {
+                    System.err.println("Unrecognized Action token " + actionName);
                 }
             }
         });

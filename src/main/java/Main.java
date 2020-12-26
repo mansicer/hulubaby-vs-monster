@@ -22,7 +22,9 @@ import javafx.util.Duration;
 import service.MultiplayerConnectionService;
 import types.BasicEntityTypes;
 import util.ComponentUtils;
+import util.EntityUtils;
 import util.NetworkUtils;
+import util.PropertyUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -31,12 +33,12 @@ public class Main extends GameApplication {
     private static final String GameTitle = "Hulubabies vs Monsters";
     private static final int GameWidth = 800;
     private static final int GameHeight = 600;
-    private static final String GameVersion = "0.1.0";
+    private static final String GameVersion = "0.1.1";
     private static final int GameNetworkPort = 6657;
     private static final String GameServerIP = "localhost";
 
-    private Optional<Entity> currentPlayer;
-    private Optional<Polygon> playerIcon;
+    private int currentPlayerID = -1;
+    private Polygon playerIcon;
 
     @Override
     protected void initSettings(GameSettings gameSettings) {
@@ -63,7 +65,7 @@ public class Main extends GameApplication {
                     server.startAsync();
                     FXGL.getWorldProperties().setValue("server", server);
                     server.setOnConnected(bundleConnection -> {
-                        NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection, FXGL.getInput());
+                        NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
                     });
                 }
                 if (isClient) {
@@ -72,7 +74,7 @@ public class Main extends GameApplication {
                     FXGL.getWorldProperties().setValue("client", client);
                     client.setOnConnected(bundleConnection -> {
                         NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
-                        NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getInput());
+                        NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getGameWorld());
                     });
                 }
             });
@@ -85,6 +87,7 @@ public class Main extends GameApplication {
         vars.put("client", Optional.empty());
         vars.put("isServer", false);
         vars.put("isClient", false);
+        vars.put("CurrentPlayerID", -1);
     }
 
     @Override
@@ -112,21 +115,38 @@ public class Main extends GameApplication {
         FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BasicEntityTypes.BULLET, BasicEntityTypes.PLAYER) {
             @Override
             protected void onCollisionBegin(Entity a, Entity b) {
-                var typeA = a.getComponent(DetailedTypeComponent.class);
-                var typeB = b.getComponent(DetailedTypeComponent.class);
-                if (typeA.isEnemy(typeB)) {
-                    int damage = a.getComponent(BulletComponent.class).getDamage();
-                    b.getComponent(HealthComponent.class).decreaseHealth(damage);
-                    a.removeFromWorld();
-                    checkCurrentPlayerAlive();
+                if (NetworkUtils.isServer()) {
+                    var typeA = a.getComponent(DetailedTypeComponent.class);
+                    var typeB = b.getComponent(DetailedTypeComponent.class);
+                    if (typeA.isEnemy(typeB)) {
+                        int damage = a.getComponent(BulletComponent.class).getDamage();
+                        b.getComponent(HealthComponent.class).decreaseHealth(damage);
+                        a.removeFromWorld();
+//                    checkCurrentPlayerAlive();
+                    }
                 }
             }
         });
     }
 
-    protected void checkCurrentPlayerAlive() {
-        if (!currentPlayer.get().isActive()) {
-            currentPlayer = Optional.empty();
+    @Override
+    protected void onUpdate(double tpf) {
+        checkCurrentPlayer();
+    }
+
+    protected void checkCurrentPlayer() {
+        int playerID = PropertyUtils.getCurrentPlayerID();
+        if (playerID < 0) {
+            // current player died
+            currentPlayerID = -1;
+        }
+        else if (currentPlayerID != playerID) {
+            if (currentPlayerID >= 0) {
+                // remove icons
+                EntityUtils.getEntityByNetworkID(currentPlayerID).get().getViewComponent().removeChild(playerIcon);
+            }
+            currentPlayerID = playerID;
+            geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
         }
     }
 
@@ -137,7 +157,7 @@ public class Main extends GameApplication {
         icon.setLayoutX(player.getWidth() / 2 - ICON_WIDTH / 2);
         icon.setFill(Color.BLUE);
         player.getViewComponent().addChild(icon);
-        playerIcon = Optional.of(icon);
+        playerIcon = icon;
     }
 
     public static void main(String[] args) {
