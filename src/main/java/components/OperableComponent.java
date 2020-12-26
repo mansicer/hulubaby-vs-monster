@@ -1,8 +1,11 @@
 package components;
 
+import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.entity.component.Component;
+import com.almasb.fxgl.entity.component.SerializableComponent;
+import org.jetbrains.annotations.NotNull;
 
-public class OperableComponent extends Component {
+public class OperableComponent extends Component implements SerializableComponent {
     protected boolean isOperable = true;
 
     protected boolean isOperable() {
@@ -23,5 +26,15 @@ public class OperableComponent extends Component {
                 ((OperableComponent) component).isOperable = false;
             }
         }
+    }
+
+    @Override
+    public void read(@NotNull Bundle bundle) {
+        isOperable = bundle.get("isOperable");
+    }
+
+    @Override
+    public void write(@NotNull Bundle bundle) {
+        bundle.put("isOperable", isOperable);
     }
 }

@@ -1,8 +1,6 @@
 package components;
 
 import com.almasb.fxgl.dsl.FXGL;
-import com.almasb.fxgl.entity.SpawnData;
-import javafx.util.Duration;
 
 public class ControllableComponent extends MovableComponent {
     protected int maxSpeed = 200;

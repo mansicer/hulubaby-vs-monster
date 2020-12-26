@@ -1,10 +1,13 @@
 package components;
 
+import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.component.Component;
+import com.almasb.fxgl.entity.component.SerializableComponent;
 import javafx.scene.control.ProgressBar;
+import org.jetbrains.annotations.NotNull;
 
-public class HealthComponent extends Component {
+public class HealthComponent extends Component implements SerializableComponent {
     protected int health = 100;
     protected int maxHealth = 100;
     protected boolean isVisible = true;
@@ -53,5 +56,20 @@ public class HealthComponent extends Component {
     @Override
     public void onUpdate(double tpf) {
         healthUI.setProgress((double) health / maxHealth);
+        if (entity.getScaleX() < 0) {
+            healthUI.setScaleX(-1);
+        } else if (entity.getScaleX() > 0) {
+            healthUI.setScaleX(1);
+        }
+    }
+
+    @Override
+    public void read(@NotNull Bundle bundle) {
+        health = bundle.get("health");
+    }
+
+    @Override
+    public void write(@NotNull Bundle bundle) {
+        bundle.put("health", health);
     }
 }

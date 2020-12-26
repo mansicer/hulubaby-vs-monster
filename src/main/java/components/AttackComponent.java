@@ -1,7 +1,9 @@
 package components;
 
+import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import util.ComponentUtils;
 
 import java.util.Optional;
@@ -10,6 +12,7 @@ public class AttackComponent extends OperableComponent {
     protected double attackAnimationTime = 0.3;
     protected double attackBackSwingTime = 0.2;
     protected int damage = 0;
+    protected boolean isAttacking = false;
 
     AttackComponent(double attackAnimationTime, double attackBackSwingTime, int damage) {
         this.attackAnimationTime = attackAnimationTime;
@@ -30,6 +33,20 @@ public class AttackComponent extends OperableComponent {
     }
 
     protected void doAttack() {
+        // do nothing
+    }
 
+    @Override
+    public void read(@NotNull Bundle bundle) {
+        super.read(bundle);
+        damage = bundle.get("damage");
+        isAttacking = bundle.get("isAttacking");
+    }
+
+    @Override
+    public void write(@NotNull Bundle bundle) {
+        super.write(bundle);
+        bundle.put("damage", damage);
+        bundle.put("isAttacking", isAttacking);
     }
 }

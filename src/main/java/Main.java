@@ -1,29 +1,39 @@
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
+import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
-import com.almasb.fxgl.input.UserAction;
+import com.almasb.fxgl.net.Client;
+import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
 import components.BulletComponent;
-import components.ControllableComponent;
 import components.DetailedTypeComponent;
 import components.HealthComponent;
-import javafx.geometry.Rectangle2D;
+import input.BehaviorControl;
+import input.DirectionControl;
+import input.GameControl;
+import input.MouseControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
+import javafx.util.Duration;
+import service.MultiplayerConnectionService;
 import types.BasicEntityTypes;
 import util.ComponentUtils;
+import util.NetworkUtils;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class Main extends GameApplication {
     private static final String GameTitle = "Hulubabies vs Monsters";
-    private static final int GameWidth = 1600;
-    private static final int GameHeight = 900;
-    private static final String GameVersion = "0.0.2";
+    private static final int GameWidth = 800;
+    private static final int GameHeight = 600;
+    private static final String GameVersion = "0.1.0";
+    private static final int GameNetworkPort = 6657;
+    private static final String GameServerIP = "localhost";
 
     private Optional<Entity> currentPlayer;
     private Optional<Polygon> playerIcon;
@@ -34,109 +44,59 @@ public class Main extends GameApplication {
         gameSettings.setWidth(GameWidth);
         gameSettings.setHeight(GameHeight);
         gameSettings.setVersion(GameVersion);
+        gameSettings.addEngineService(MultiplayerConnectionService.class);
     }
 
     @Override
     protected void initGame() {
         FXGL.getGameWorld().addEntityFactory(new HvMFactory());
         FXGL.getGameScene().getViewport().setBounds(0, 0, GameWidth, GameHeight);
-        currentPlayer = Optional.of(FXGL.spawn("TestCharacter1", GameWidth/3, GameHeight/2));
-        geneartePlayerIcon(currentPlayer.get());
-        FXGL.spawn("TestCharacter1-Enemy", 2 * GameWidth/3, GameHeight/2);
+
+        FXGL.runOnce(()-> {
+            FXGL.getDialogService().showConfirmationBox("Is Server?", aBoolean -> {
+                boolean isServer = aBoolean;
+                boolean isClient = !aBoolean;
+                FXGL.getWorldProperties().setValue("isServer", isServer);
+                FXGL.getWorldProperties().setValue("isClient", isClient);
+                if (isServer) {
+                    Server<Bundle> server = FXGL.getNetService().newUDPServer(GameNetworkPort);
+                    server.startAsync();
+                    FXGL.getWorldProperties().setValue("server", server);
+                    server.setOnConnected(bundleConnection -> {
+                        NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection, FXGL.getInput());
+                    });
+                }
+                if (isClient) {
+                    Client<Bundle> client = FXGL.getNetService().newUDPClient(GameServerIP, GameNetworkPort);
+                    client.connectAsync();
+                    FXGL.getWorldProperties().setValue("client", client);
+                    client.setOnConnected(bundleConnection -> {
+                        NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
+                        NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getInput());
+                    });
+                }
+            });
+        }, Duration.seconds(0.1));
+    }
+
+    @Override
+    protected void initGameVars(Map<String, Object> vars) {
+        vars.put("server", Optional.empty());
+        vars.put("client", Optional.empty());
+        vars.put("isServer", false);
+        vars.put("isClient", false);
     }
 
     @Override
     protected void initInput() {
         Input input = FXGL.getInput();
-        input.addAction(new UserAction("Move Up") {
-            @Override
-            protected void onAction() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).moveUp();
-                });
-            }
-            @Override
-            protected void onActionEnd() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).stopY();
-                });
-            }
-        }, KeyCode.UP);
-
-        input.addAction(new UserAction("Move Down") {
-            @Override
-            protected void onAction() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).moveDown();
-                });
-            }
-            @Override
-            protected void onActionEnd() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).stopY();
-                });
-            }
-        }, KeyCode.DOWN);
-
-        input.addAction(new UserAction("Move Left") {
-            @Override
-            protected void onAction() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).moveLeft();
-                });
-            }
-            @Override
-            protected void onActionEnd() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).stopX();
-                });
-            }
-        }, KeyCode.LEFT);
-
-        input.addAction(new UserAction("Move Right") {
-            @Override
-            protected void onAction() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).moveRight();
-                });
-            }
-            @Override
-            protected void onActionEnd() {
-                currentPlayer.ifPresent(player -> {
-                    player.getComponent(ControllableComponent.class).stopX();
-                });
-            }
-        }, KeyCode.RIGHT);
-
-        input.addAction(new UserAction("Attack") {
-            @Override
-            protected void onActionBegin() {
-                currentPlayer.ifPresent(player -> {
-                    ComponentUtils.getAttackComponent(player).ifPresent(c -> c.attack());
-                });
-            }
-        }, KeyCode.A);
-
-        input.addAction(new UserAction("Choose Player") {
-            @Override
-            protected void onActionBegin() {
-                var position = input.getMousePositionWorld();
-                var range = new Rectangle2D(position.getX() - 6, position.getY() - 10, 12, 20);
-                var entities = FXGL.getGameWorld().getEntitiesInRange(range);
-
-                // TODO: choose the closest one
-                for (Entity entity: entities) {
-                    if (entity.getComponentOptional(ControllableComponent.class).isPresent()) {
-                        if (currentPlayer.isPresent() && currentPlayer.get().isActive()) {
-                            playerIcon.ifPresent(polygon -> currentPlayer.get().getViewComponent().removeChild(polygon));
-                        }
-                        currentPlayer = Optional.of(entity);
-                        geneartePlayerIcon(currentPlayer.get());
-                        break;
-                    }
-                }
-            }
-        }, MouseButton.PRIMARY);
+        input.addAction(new DirectionControl.MoveUp(), KeyCode.UP);
+        input.addAction(new DirectionControl.MoveDown(), KeyCode.DOWN);
+        input.addAction(new DirectionControl.MoveLeft(), KeyCode.LEFT);
+        input.addAction(new DirectionControl.MoveRight(), KeyCode.RIGHT);
+        input.addAction(new GameControl.StartGame(), KeyCode.SPACE);
+        input.addAction(new BehaviorControl.Attack(), KeyCode.A);
+        input.addAction(new MouseControl.ChoosePlayer(), MouseButton.PRIMARY);
     }
 
     @Override
