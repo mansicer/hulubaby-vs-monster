@@ -9,6 +9,8 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Server;
+import com.almasb.fxgl.net.UDPClientConfig;
+import com.almasb.fxgl.net.UDPServerConfig;
 import com.almasb.fxgl.physics.CollisionHandler;
 import components.BulletComponent;
 import components.DetailedTypeComponent;
@@ -95,14 +97,15 @@ public class Main extends GameApplication {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
+            UDPServerConfig<Bundle> bundle= new UDPServerConfig<Bundle>(Bundle.class,256);
+            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort,bundle);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
             try {
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(3);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -114,11 +117,12 @@ public class Main extends GameApplication {
                 e.printStackTrace();
             }
             try {
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            Client<Bundle> client = FXGL.getNetService().newUDPClient(props.getProperty("ip"), Config.GameNetworkPort);
+            UDPClientConfig<Bundle> config = new UDPClientConfig<Bundle>(Bundle.class,256);
+            Client<Bundle> client = FXGL.getNetService().newUDPClient(props.getProperty("ip"), Config.GameNetworkPort,config);
             client.connectAsync();
             FXGL.getWorldProperties().setValue("client", client);
             client.setOnConnected(bundleConnection -> {
