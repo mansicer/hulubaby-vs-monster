@@ -1,23 +1,29 @@
 package service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Properties;
 
 public class SocketClient {
     // 搭建客户端
     public void clientConnect() throws IOException {
+        Properties props = new Properties();
+        try {
+            props.load(new FileInputStream("src/config.properties"));
+        }
+        catch (IOException e){
+            System.out.println("no such file or directory");
+        }
+        String host = props.getProperty("ip");
         while (true)
+
             try {
                 // 1、创建客户端Socket，指定服务器地址和端口
 
                 //下面是你要传输到另一台电脑的IP地址和端口
-                Socket socket = new Socket("127.0.0.1", 5209);
+                Socket socket = new Socket(host, 5209);
                 System.out.println("客户端启动成功");
                 // 2、获取输出流，向服务器端发送信息
                 // 向本机的52000端口发出客户请求
