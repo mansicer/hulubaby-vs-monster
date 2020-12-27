@@ -47,7 +47,9 @@ import service.TCPClient;
 import service.TCPService;
 import types.BasicEntityTypes;
 import util.ComponentUtils;
+import util.EntityUtils;
 import util.NetworkUtils;
+import util.PropertyUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,8 +57,8 @@ import java.net.SocketException;
 import java.util.*;
 
 public class Main extends GameApplication {
-    private Optional<Entity> currentPlayer;
-    private Optional<Polygon> playerIcon;
+    private int currentPlayerID = -1;
+    private Polygon playerIcon;
 
     @Override
     protected void initSettings(GameSettings gameSettings) {
@@ -104,44 +106,58 @@ public class Main extends GameApplication {
         PropertyMap worldProperties = FXGL.getWorldProperties();
         worldProperties.setValue("isServer",isServer);
         worldProperties.setValue("isClient",isClient);
-//        waitConnect();
-//        BooleanProperty connected = worldProperties.booleanProperty("connected");
-//        connected.addListener((observableValue, aBoolean, t1) -> {
-//            if(observableValue.getValue()==true){
-//                FXGL.getGameScene().removeUINode(vBox);
-//            }
-//        });
+
         if(isServer){
             new TCPService().udpServerStart();
 //            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
 //            server.startAsync();
-//            FXGL.getWorldProperties().setValue("server", server);
-//            server.setOnConnected(bundleConnection -> {
-//                NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection, FXGL.getInput());
-//                connected.setValue(true);
+//            server.setOnConnected(connection -> {
+//                connection.addMessageHandlerFX((connection1, bundle) -> {
+//                    if(bundle.getName().startsWith("connect")){
+//                        Bundle bd = new Bundle("received");
+//                        connection1.send(bd);
+//                    }
+//                });
 //            });
-
         }
         if(isClient){
             new TCPClient().udpClientConnect();
-//            String GameServerIP = props.getProperty("ip");
-//            Client<Bundle> client = FXGL.getNetService().newUDPClient(GameServerIP, Config.GameNetworkPort);
+//            BooleanProperty connected = worldProperties.booleanProperty("connected");
+//            Client<Bundle> client = FXGL.getNetService().newUDPClient("localhost",Config.GameNetworkPort);
 //            client.connectAsync();
-//            FXGL.getWorldProperties().setValue("client", client);
-//            client.setOnConnected(bundleConnection -> {
-//                NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
-//                NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getInput());
-//                connected.setValue(true);
+//            client.setOnConnected(connection -> {
+//                connection.addMessageHandlerFX((connection1, bundle) -> {
+//                    if(bundle.getName().startsWith("received")){
+//                        connected.setValue(false);
+//                    }
+//                });
 //            });
+//            FXGL.getGameTimer().runAtIntervalWhile(()->{
+//                client.getConnections().forEach(connection -> {
+//                    Bundle bd = new Bundle("connect");
+//                    connection.send(bd);
+//                    System.out.println("send");
+//                });
+//            },Duration.seconds(0.5),connected);
+
         }
 
         if (isServer) {
-            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 2, FXGL.getAppHeight() / 2);
+            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() / 3);
+            FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
+            Entity enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
+            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() * 2 / 3);
+
             FXGL.getWorldProperties().setValue("CurrentPlayerID", entity.getComponent(NetworkIDComponent.class).getId());
-        } else {
-            FXGL.getWorldProperties().setValue("CurrentPlayerID", 0);
+
+            Bundle message = new Bundle("PlayerAllocation");
+            message.put("playerID", EntityUtils.getNetworkID(enemy));
+            NetworkUtils.getServer().getConnections().forEach(connection ->  {
+                NetworkUtils.getMultiplayerService().sendMessage(connection, message);
+            });
         }
     }
+
 //    private VBox vBox;
 //    private void waitConnect(){
 //        var progressIndicator = new ProgressIndicator();
@@ -160,17 +176,16 @@ public class Main extends GameApplication {
 
     @Override
     protected void initGameVars(Map<String, Object> vars) {
-        System.out.println("initGameVars");
         vars.put("server", Optional.empty());
         vars.put("client", Optional.empty());
         vars.put("isServer", false);
         vars.put("isClient", false);
-        vars.put("connected",false);
+        vars.put("CurrentPlayerID", -1);
+        vars.put("connected",true);
     }
 
     @Override
     protected void initInput() {
-        System.out.println("initInput");
         Input input = FXGL.getInput();
         input.addAction(new DirectionControl.MoveUp(), KeyCode.UP);
         input.addAction(new DirectionControl.MoveDown(), KeyCode.DOWN);
@@ -194,21 +209,38 @@ public class Main extends GameApplication {
         FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BasicEntityTypes.BULLET, BasicEntityTypes.PLAYER) {
             @Override
             protected void onCollisionBegin(Entity a, Entity b) {
-                var typeA = a.getComponent(DetailedTypeComponent.class);
-                var typeB = b.getComponent(DetailedTypeComponent.class);
-                if (typeA.isEnemy(typeB)) {
-                    int damage = a.getComponent(BulletComponent.class).getDamage();
-                    b.getComponent(HealthComponent.class).decreaseHealth(damage);
-                    a.removeFromWorld();
-                    checkCurrentPlayerAlive();
+                if (NetworkUtils.isServer()) {
+                    var typeA = a.getComponent(DetailedTypeComponent.class);
+                    var typeB = b.getComponent(DetailedTypeComponent.class);
+                    if (typeA.isEnemy(typeB)) {
+                        int damage = a.getComponent(BulletComponent.class).getDamage();
+                        b.getComponent(HealthComponent.class).decreaseHealth(damage);
+                        a.removeFromWorld();
+//                    checkCurrentPlayerAlive();
+                    }
                 }
             }
         });
     }
 
-    protected void checkCurrentPlayerAlive() {
-        if (!currentPlayer.get().isActive()) {
-            currentPlayer = Optional.empty();
+    @Override
+    protected void onUpdate(double tpf) {
+        checkCurrentPlayer();
+    }
+
+    protected void checkCurrentPlayer() {
+        int playerID = PropertyUtils.getCurrentPlayerID();
+        if (playerID < 0) {
+            // current player died
+            currentPlayerID = -1;
+        }
+        else if (currentPlayerID != playerID) {
+            if (currentPlayerID >= 0) {
+                // remove icons
+                EntityUtils.getEntityByNetworkID(currentPlayerID).get().getViewComponent().removeChild(playerIcon);
+            }
+            currentPlayerID = playerID;
+            geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
         }
     }
 
@@ -219,7 +251,7 @@ public class Main extends GameApplication {
         icon.setLayoutX(player.getWidth() / 2 - ICON_WIDTH / 2);
         icon.setFill(Color.BLUE);
         player.getViewComponent().addChild(icon);
-        playerIcon = Optional.of(icon);
+        playerIcon = icon;
     }
 
     public static void main(String[] args) {

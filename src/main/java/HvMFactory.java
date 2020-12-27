@@ -75,7 +75,7 @@ public class HvMFactory implements EntityFactory {
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
-        return FXGL.entityBuilder(data)
+        var entity = FXGL.entityBuilder(data)
                 .type(BasicEntityTypes.BULLET)
                 .with(new NetworkIDComponent())
                 .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.HuluBabyCamp))
@@ -85,6 +85,9 @@ public class HvMFactory implements EntityFactory {
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
                 .collidable()
                 .build();
+
+        broadcastSpawnEvent(entity, data, "TestCharacter1Bullet");
+        return entity;
     }
 
     @Spawns("TestCharacter1Bullet-Enemy")
@@ -95,9 +98,9 @@ public class HvMFactory implements EntityFactory {
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
-        return FXGL.entityBuilder(data)
-                .with(new NetworkIDComponent())
+        var entity = FXGL.entityBuilder(data)
                 .type(BasicEntityTypes.BULLET)
+                .with(new NetworkIDComponent())
                 .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.MonsterCamp))
                 .bbox(new HitBox(BoundingShape.box(30, 30)))
                 .with(new MovableComponent(speedX, speedY))
@@ -105,5 +108,8 @@ public class HvMFactory implements EntityFactory {
                 .with(new AnimatedComponent(animatedIdle, animatedWalk))
                 .collidable()
                 .build();
+
+        broadcastSpawnEvent(entity, data, "TestCharacter1Bullet-Enemy");
+        return entity;
     }
 }

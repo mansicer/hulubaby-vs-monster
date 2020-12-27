@@ -17,12 +17,9 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
-import java.util.Scanner;
 
 public class TCPClient {
-
     public void udpClientConnect() {
-        TCPClient client = new TCPClient();
         SimpleDateFormat format = new SimpleDateFormat("hh-MM-ss");
         String msg = "Start connect#";
         Properties props = new Properties();
@@ -36,30 +33,34 @@ public class TCPClient {
             System.out.println("send time : " + format.format(new Date()));
             String GameServerIP = props.getProperty("ip");
             try {
-                if(client.sendAndReceive(GameServerIP, TCPService.SERVICE_PORT, msg).equals("connect success")) {
+                if(sendAndReceive(GameServerIP, TCPService.SERVICE_PORT, msg).equals("connect success")) {
                     Client<Bundle> udpClient = FXGL.getNetService().newUDPClient(GameServerIP, Config.GameNetworkPort);
                     udpClient.connectAsync();
                     FXGL.getWorldProperties().setValue("client", udpClient);
                     udpClient.setOnConnected(bundleConnection -> {
                         NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
-                        NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getInput());
+                        NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection,FXGL.getGameWorld());
                     });
+                    client.close();
                     break;
                 }
             }
             catch (ConnectException e){
 
+            } catch (IOException e) {
+                e.printStackTrace();
             }
             System.out.println("receive time : " + format.format(new Date()));
         }
     }
-
+    private Socket client;
     private String sendAndReceive(String ip, int port, String msg) throws ConnectException {
         //这里比较重要，需要给请求信息添加终止符，否则服务端会在解析数据时，一直等待
         msg = msg+TCPService.END_CHAR;
         StringBuilder receiveMsg = new StringBuilder();
         //开启一个链接，需要指定地址和端口
-        try (Socket client = new Socket(ip, port)){
+        try {
+            client = new Socket(ip, port);
             //向输出流中写入数据，传向服务端
             OutputStream out = client.getOutputStream();
             out.write(msg.getBytes());

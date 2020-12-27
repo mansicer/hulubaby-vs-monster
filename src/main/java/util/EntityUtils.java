@@ -13,6 +13,8 @@ public class EntityUtils {
         );
         var ret = entities.findFirst();
         if (ret.isEmpty()) {
+            // this could be triggered, but not caused by error
+            // maybe remove this print
             System.err.println("Entity with Network ID " + id + " not exist!");
         }
         return ret;

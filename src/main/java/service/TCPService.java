@@ -17,7 +17,7 @@ public class TCPService {
     public static final String SERVICE_IP = "127.0.0.1";
     public static final int SERVICE_PORT = 12345;
     public static final char END_CHAR = '#';
-
+    public Server<Bundle> server;
     public void udpServerStart() {
         TCPService service = new TCPService();
         //启动服务端
@@ -48,20 +48,22 @@ public class TCPService {
                     if(receiveMsg.toString().equals("Start connect")) {
                         response = "connect success" + END_CHAR;
                     }
+                    //获取输入流，并通过向输出流写数据的方式发送响应
 
-                    Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
+                    server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
                     server.startAsync();
                     FXGL.getWorldProperties().setValue("server", server);
                     server.setOnConnected(bundleConnection -> {
-                        NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection, FXGL.getInput());
+                        NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
                     });
-                    //获取输入流，并通过向输出流写数据的方式发送响应
+
                     OutputStream out = connect.getOutputStream();
                     out.write(response.getBytes());
+                    service.close();
                 }catch (Exception e){
                     e.printStackTrace();
                 }finally {
-                    service.close();
+
                 }
             }catch (Exception e){
                 e.printStackTrace();
