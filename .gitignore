@@ -124,6 +124,7 @@ hs_err_pid*
 
 .DS_Store
 
+*.properties
 
 # Created by https://www.toptal.com/developers/gitignore/api/maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=maven
