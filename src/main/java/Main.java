@@ -3,16 +3,13 @@ import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.app.MenuItem;
 import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.SceneFactory;
-import com.almasb.fxgl.core.collection.PropertyMap;
 import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.net.Client;
-import com.almasb.fxgl.net.NetService;
 import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
-import com.sun.javafx.stage.StagePeerListener;
 import components.BulletComponent;
 import components.DetailedTypeComponent;
 import components.HealthComponent;
@@ -22,29 +19,15 @@ import input.BehaviorControl;
 import input.DirectionControl;
 import input.GameControl;
 import input.MouseControl;
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.util.Duration;
 import menu.GameMenu;
 import org.jetbrains.annotations.NotNull;
 import service.MultiplayerConnectionService;
-import service.TCPClient;
-import service.TCPService;
+import service.SocketClient;
+import service.SocketService;
 import types.BasicEntityTypes;
 import util.ComponentUtils;
 import util.EntityUtils;
@@ -53,8 +36,8 @@ import util.PropertyUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Main extends GameApplication {
     private int currentPlayerID = -1;
@@ -70,7 +53,7 @@ public class Main extends GameApplication {
         gameSettings.setMainMenuEnabled(true);
         gameSettings.setGameMenuEnabled(true);
         gameSettings.setManualResizeEnabled(true);
-        gameSettings.setDeveloperMenuEnabled(true);
+//        gameSettings.setDeveloperMenuEnabled(true);
         gameSettings.setEnabledMenuItems(EnumSet.of(MenuItem.EXTRA));
         gameSettings.setSceneFactory(new SceneFactory(){
             @NotNull
@@ -83,7 +66,6 @@ public class Main extends GameApplication {
 
     @Override
     protected void initGame() {
-        System.out.println("initGame");
         FXGL.getGameWorld().addEntityFactory(new HvMFactory());
         FXGL.getGameScene().getViewport().setBounds(0, 0, Config.GameWidth, Config.GameHeight);
         Properties props = new Properties();
@@ -95,51 +77,54 @@ public class Main extends GameApplication {
         }
         String isserver = props.getProperty("isServer");
         String isclient = props.getProperty("isClient");
-        Boolean isServer=false;
+        boolean isServer=false;
         if (isserver.equals("true")){
             isServer = true;
         }
-        Boolean isClient=false;
+        boolean isClient=false;
         if(isclient.equals("true")){
             isClient = true;
         }
-        PropertyMap worldProperties = FXGL.getWorldProperties();
-        worldProperties.setValue("isServer",isServer);
-        worldProperties.setValue("isClient",isClient);
 
-        if(isServer){
-            new TCPService().udpServerStart();
-//            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
-//            server.startAsync();
-//            server.setOnConnected(connection -> {
-//                connection.addMessageHandlerFX((connection1, bundle) -> {
-//                    if(bundle.getName().startsWith("connect")){
-//                        Bundle bd = new Bundle("received");
-//                        connection1.send(bd);
-//                    }
-//                });
-//            });
+        FXGL.getWorldProperties().setValue("isServer",isServer);
+        FXGL.getWorldProperties().setValue("isClient",isClient);
+
+        if (isServer) {
+            try {
+                new SocketService().serverConnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
+            server.startAsync();
+            FXGL.getWorldProperties().setValue("server", server);
+            server.setOnConnected(bundleConnection -> {
+                NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
+            });
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        if(isClient){
-            new TCPClient().udpClientConnect();
-//            BooleanProperty connected = worldProperties.booleanProperty("connected");
-//            Client<Bundle> client = FXGL.getNetService().newUDPClient("localhost",Config.GameNetworkPort);
-//            client.connectAsync();
-//            client.setOnConnected(connection -> {
-//                connection.addMessageHandlerFX((connection1, bundle) -> {
-//                    if(bundle.getName().startsWith("received")){
-//                        connected.setValue(false);
-//                    }
-//                });
-//            });
-//            FXGL.getGameTimer().runAtIntervalWhile(()->{
-//                client.getConnections().forEach(connection -> {
-//                    Bundle bd = new Bundle("connect");
-//                    connection.send(bd);
-//                    System.out.println("send");
-//                });
-//            },Duration.seconds(0.5),connected);
-
+        if (isClient) {
+            try {
+                new SocketClient().clientConnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Client<Bundle> client = FXGL.getNetService().newUDPClient(props.getProperty("ip"), Config.GameNetworkPort);
+            client.connectAsync();
+            FXGL.getWorldProperties().setValue("client", client);
+            client.setOnConnected(bundleConnection -> {
+                NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
+                NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getGameWorld());
+            });
         }
 
         if (isServer) {
@@ -181,7 +166,6 @@ public class Main extends GameApplication {
         vars.put("isServer", false);
         vars.put("isClient", false);
         vars.put("CurrentPlayerID", -1);
-        vars.put("connected",true);
     }
 
     @Override
@@ -216,7 +200,6 @@ public class Main extends GameApplication {
                         int damage = a.getComponent(BulletComponent.class).getDamage();
                         b.getComponent(HealthComponent.class).decreaseHealth(damage);
                         a.removeFromWorld();
-//                    checkCurrentPlayerAlive();
                     }
                 }
             }

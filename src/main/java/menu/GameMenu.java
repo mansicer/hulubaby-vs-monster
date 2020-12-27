@@ -18,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -124,7 +125,7 @@ public class GameMenu extends FXGLMenu {
             this.name = name;
             this.action = action;
             this.description = description;
-            this.text = FXGL.getUIFactoryService().newText(name, Color.WHITE,25);
+            this.text = FXGL.getUIFactoryService().newText(name, Color.LIGHTGRAY,25);
             this.selector = new Polygon(0,0,15,10,0,20);
             this.selector.setFill(Color.WHITE);
             this.selector.setTranslateX(-25);
@@ -133,13 +134,19 @@ public class GameMenu extends FXGLMenu {
             this.text.fillProperty().bind(Bindings.when(focusedProperty()).then(SELECTED_COLOR).otherwise(NOT_SELECTED_COLOR));
             this.text.strokeProperty().bind(Bindings.when(focusedProperty()).then(SELECTED_COLOR).otherwise(NOT_SELECTED_COLOR));
 
+            setOnMouseEntered(mouseEvent -> {
+                setFocused(true);
+            });
+            setOnMouseExited(mouseEvent -> {
+                setFocused(false);
+            });
+
             focusedProperty().addListener((observableValue, oldValue, isSelected) -> {
                 if(isSelected){
                     selectButton.setValue(this);
                 }
             });
 
-            setFocusTraversable(true);
             setOnKeyPressed(keyEvent -> {
                 if(keyEvent.getCode()==KeyCode.ENTER){
                     this.action.run();
