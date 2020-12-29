@@ -42,8 +42,12 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Main extends GameApplication {
-    private int currentPlayerID = -1;
-    private Polygon playerIcon;
+    private static final String GameTitle = "Hulubabies vs Monsters";
+    private static final int GameWidth = 800;
+    private static final int GameHeight = 600;
+    private static final String GameVersion = "0.1.1";
+    private static final int GameNetworkPort = 6657;
+    private static final String GameServerIP = "localhost";
 
     @Override
     protected void initSettings(GameSettings gameSettings) {
@@ -88,21 +92,29 @@ public class Main extends GameApplication {
             isClient = true;
         }
 
-        FXGL.getWorldProperties().setValue("isServer",isServer);
-        FXGL.getWorldProperties().setValue("isClient",isClient);
-
-        if (isServer) {
-            try {
-                new SocketService().serverConnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            UDPServerConfig<Bundle> bundle= new UDPServerConfig<Bundle>(Bundle.class,1024);
-            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort,bundle);
-            server.startAsync();
-            FXGL.getWorldProperties().setValue("server", server);
-            server.setOnConnected(bundleConnection -> {
-                NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
+        FXGL.runOnce(()-> {
+            FXGL.getDialogService().showConfirmationBox("Is Server?", aBoolean -> {
+                boolean isServer = aBoolean;
+                boolean isClient = !aBoolean;
+                FXGL.getWorldProperties().setValue("isServer", isServer);
+                FXGL.getWorldProperties().setValue("isClient", isClient);
+                if (isServer) {
+                    Server<Bundle> server = FXGL.getNetService().newUDPServer(GameNetworkPort);
+                    server.startAsync();
+                    FXGL.getWorldProperties().setValue("server", server);
+                    server.setOnConnected(bundleConnection -> {
+                        NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
+                    });
+                }
+                if (isClient) {
+                    Client<Bundle> client = FXGL.getNetService().newUDPClient(GameServerIP, GameNetworkPort);
+                    client.connectAsync();
+                    FXGL.getWorldProperties().setValue("client", client);
+                    client.setOnConnected(bundleConnection -> {
+                        NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
+                        NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getGameWorld());
+                    });
+                }
             });
             try {
                 TimeUnit.SECONDS.sleep(0);
