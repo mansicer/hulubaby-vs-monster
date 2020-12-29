@@ -97,7 +97,7 @@ public class Main extends GameApplication {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            UDPServerConfig<Bundle> bundle= new UDPServerConfig<Bundle>(Bundle.class,1024);
+            UDPServerConfig<Bundle> bundle= new UDPServerConfig<Bundle>(Bundle.class,1048576);
             Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort,bundle);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
@@ -105,7 +105,7 @@ public class Main extends GameApplication {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
             try {
-                TimeUnit.SECONDS.sleep(0);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -131,20 +131,20 @@ public class Main extends GameApplication {
             });
         }
 
-//        if (isServer) {
-//            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() / 3);
-//            FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
-//            Entity enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
-//            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() * 2 / 3);
-//
-//            FXGL.getWorldProperties().setValue("CurrentPlayerID", entity.getComponent(NetworkIDComponent.class).getId());
-//
-//            Bundle message = new Bundle("PlayerAllocation");
-//            message.put("playerID", EntityUtils.getNetworkID(enemy));
-//            NetworkUtils.getServer().getConnections().forEach(connection ->  {
-//                NetworkUtils.getMultiplayerService().sendMessage(connection, message);
-//            });
-//        }
+        if (isServer) {
+            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() / 3);
+            FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
+            Entity enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
+            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() * 2 / 3);
+
+            FXGL.getWorldProperties().setValue("CurrentPlayerID", entity.getComponent(NetworkIDComponent.class).getId());
+
+            Bundle message = new Bundle("PlayerAllocation");
+            message.put("playerID", EntityUtils.getNetworkID(enemy));
+            NetworkUtils.getServer().getConnections().forEach(connection ->  {
+                NetworkUtils.getMultiplayerService().sendMessage(connection, message);
+            });
+        }
     }
 
 //    private VBox vBox;
