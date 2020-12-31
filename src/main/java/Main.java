@@ -7,9 +7,7 @@ import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
-import components.BulletComponent;
-import components.DetailedTypeComponent;
-import components.HealthComponent;
+import components.*;
 import input.BehaviorControl;
 import input.DirectionControl;
 import input.GameControl;
@@ -26,6 +24,7 @@ import util.EntityUtils;
 import util.NetworkUtils;
 import util.PropertyUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,7 +32,7 @@ public class Main extends GameApplication {
     private static final String GameTitle = "Hulubabies vs Monsters";
     private static final int GameWidth = 800;
     private static final int GameHeight = 600;
-    private static final String GameVersion = "0.1.1";
+    private static final String GameVersion = "0.2.0";
     private static final int GameNetworkPort = 6657;
     private static final String GameServerIP = "localhost";
 
@@ -88,6 +87,7 @@ public class Main extends GameApplication {
         vars.put("isServer", false);
         vars.put("isClient", false);
         vars.put("CurrentPlayerID", -1);
+        vars.put("OpponentPlayerID", -1);
     }
 
     @Override
@@ -104,25 +104,14 @@ public class Main extends GameApplication {
 
     @Override
     protected void initPhysics() {
-        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BasicEntityTypes.PLAYER, BasicEntityTypes.PLAYER) {
-            @Override
-            protected void onCollision(Entity a, Entity b) {
-                // TODO: add collision on x and y separately
-                ComponentUtils.getControllableComponent(a).ifPresent(o -> o.resignLastMove());
-                ComponentUtils.getControllableComponent(b).ifPresent(o -> o.resignLastMove());
-            }
-        });
         FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BasicEntityTypes.BULLET, BasicEntityTypes.PLAYER) {
             @Override
-            protected void onCollisionBegin(Entity a, Entity b) {
+            protected void onCollision(Entity a, Entity b) {
                 if (NetworkUtils.isServer()) {
-                    var typeA = a.getComponent(DetailedTypeComponent.class);
-                    var typeB = b.getComponent(DetailedTypeComponent.class);
-                    if (typeA.isEnemy(typeB)) {
+                    if (EntityUtils.isEnemy(a, b)) {
                         int damage = a.getComponent(BulletComponent.class).getDamage();
                         b.getComponent(HealthComponent.class).decreaseHealth(damage);
                         a.removeFromWorld();
-//                    checkCurrentPlayerAlive();
                     }
                 }
             }
@@ -132,6 +121,22 @@ public class Main extends GameApplication {
     @Override
     protected void onUpdate(double tpf) {
         checkCurrentPlayer();
+        if (NetworkUtils.isServer()) {
+            checkAI();
+        }
+    }
+
+    protected void checkAI() {
+        List<Entity> controllableEntites = FXGL.getGameWorld().getEntitiesByComponent(ControllableComponent.class);
+        for (Entity entity : controllableEntites) {
+            int id = EntityUtils.getNetworkID(entity);
+            if (id != PropertyUtils.getCurrentPlayerID() && id != PropertyUtils.getOpponentPlayerID()) {
+                entity.getComponent(AIComponent.class).setAIActive(true);
+            }
+            else {
+                entity.getComponent(AIComponent.class).setAIActive(false);
+            }
+        }
     }
 
     protected void checkCurrentPlayer() {

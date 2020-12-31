@@ -8,14 +8,15 @@ import javafx.scene.control.ProgressBar;
 import org.jetbrains.annotations.NotNull;
 
 public class HealthComponent extends Component implements SerializableComponent {
-    protected int health = 100;
-    protected int maxHealth = 100;
-    protected boolean isVisible = true;
+    protected int health;
+    protected int maxHealth;
+    protected boolean isVisible;
     protected ProgressBar healthUI;
 
     public HealthComponent(int maxHealth) {
         this.maxHealth = maxHealth;
         this.health = maxHealth;
+        this.isVisible = true;
     }
 
     public HealthComponent(int maxHealth, boolean isVisible) {
@@ -24,16 +25,23 @@ public class HealthComponent extends Component implements SerializableComponent 
         this.isVisible = isVisible;
     }
 
+    public void setVisible(boolean visible) {
+        isVisible = visible;
+    }
+
+    public boolean isVisible() {
+        return isVisible;
+    }
+
     @Override
     public void onAdded() {
-        if (isVisible) {
-            healthUI = new ProgressBar((double) health / maxHealth);
-            healthUI.setLayoutX(0);
-            healthUI.setLayoutY(-10);
-            healthUI.setPrefWidth(entity.getWidth());
-            healthUI.setPrefHeight(10);
-            entity.getViewComponent().addChild(healthUI);
-        }
+        healthUI = new ProgressBar((double) health / maxHealth);
+        healthUI.setLayoutX(0);
+        healthUI.setLayoutY(-10);
+        healthUI.setPrefWidth(entity.getWidth());
+        healthUI.setPrefHeight(10);
+        entity.getViewComponent().addChild(healthUI);
+        healthUI.setVisible(isVisible);
     }
 
     public void checkHealth() {
@@ -61,6 +69,7 @@ public class HealthComponent extends Component implements SerializableComponent 
         } else if (entity.getScaleX() > 0) {
             healthUI.setScaleX(1);
         }
+        healthUI.setVisible(isVisible);
     }
 
     @Override

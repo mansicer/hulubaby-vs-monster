@@ -7,12 +7,10 @@ import com.almasb.fxgl.entity.Spawns;
 import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
-import com.almasb.fxgl.texture.AnimationChannel;
 import components.*;
-import javafx.util.Duration;
-import types.BasicEntityTypes;
-import types.CampType;
-import types.DetailedEntityType;
+import config.DawaConfig;
+import config.TestCharacter1Config;
+import config.TestCharacter1EnemyConfig;
 import util.NetworkUtils;
 
 public class HvMFactory implements EntityFactory {
@@ -27,18 +25,23 @@ public class HvMFactory implements EntityFactory {
 
     @Spawns("TestCharacter1")
     public Entity newTestCharacter1(SpawnData data) {
-        AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 1, 1);
-        AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 0, 3);
-
-        var entity = FXGL.entityBuilder(data)
-                .type(BasicEntityTypes.PLAYER)
+        Entity entity = FXGL.entityBuilder(data)
+                .type(TestCharacter1Config.basicEntityType)
                 .with(new NetworkIDComponent())
-                .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.HuluBabyCamp))
-                .bbox(new HitBox(BoundingShape.box(32, 48)))
-                .with(new ControllableComponent(200))
-                .with(new AnimatedComponent(animatedIdle, animatedWalk))
-                .with(new RangedAttackComponent(0.3, 0.3, 10, 500, "TestCharacter1Bullet"))
-                .with(new HealthComponent(100))
+                .with(new DetailedTypeComponent(TestCharacter1Config.detailedEntityType, TestCharacter1Config.campType))
+                .bbox(new HitBox(BoundingShape.box(TestCharacter1Config.width, TestCharacter1Config.height)))
+                .with(new ControllableComponent(TestCharacter1Config.speed))
+                .with(new RangedAttackComponent(TestCharacter1Config.attackAnimationTime,
+                        TestCharacter1Config.attackBackSwingTime,
+                        TestCharacter1Config.damage,
+                        TestCharacter1Config.bullet.speed,
+                        TestCharacter1Config.bullet.name,
+                        TestCharacter1Config.bullet.height,
+                        TestCharacter1Config.bullet.distance
+                ))
+                .with(new HealthComponent(TestCharacter1Config.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(TestCharacter1Config.animatedIdle, TestCharacter1Config.animatedWalk, TestCharacter1Config.animatedIdle))
                 .collidable()
                 .build();
 
@@ -48,18 +51,16 @@ public class HvMFactory implements EntityFactory {
 
     @Spawns("TestCharacter1-Enemy")
     public Entity newTestCharacter1Enemy(SpawnData data) {
-        AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 1, 1);
-        AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, 32, 48, Duration.seconds(1), 0, 3);
-
         var entity = FXGL.entityBuilder(data)
-                .type(BasicEntityTypes.PLAYER)
+                .type(TestCharacter1EnemyConfig.basicEntityType)
                 .with(new NetworkIDComponent())
-                .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.MonsterCamp))
-                .bbox(new HitBox(BoundingShape.box(32, 48)))
-                .with(new ControllableComponent(200))
-                .with(new AnimatedComponent(animatedIdle, animatedWalk))
-                .with(new RangedAttackComponent(0.4, 0.3, 25, 300, "TestCharacter1Bullet-Enemy"))
-                .with(new HealthComponent(100))
+                .with(new DetailedTypeComponent(TestCharacter1EnemyConfig.detailedEntityType, TestCharacter1EnemyConfig.campType))
+                .bbox(new HitBox(BoundingShape.box(TestCharacter1EnemyConfig.width, TestCharacter1EnemyConfig.height)))
+                .with(new ControllableComponent(TestCharacter1EnemyConfig.speed))
+                .with(new RangedAttackComponent(TestCharacter1EnemyConfig.attackAnimationTime, TestCharacter1EnemyConfig.attackBackSwingTime, TestCharacter1EnemyConfig.damage, TestCharacter1EnemyConfig.bullet.speed, "TestCharacter1Bullet-Enemy", TestCharacter1EnemyConfig.bullet.height, TestCharacter1EnemyConfig.bullet.distance))
+                .with(new HealthComponent(TestCharacter1EnemyConfig.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(TestCharacter1EnemyConfig.animatedIdle, TestCharacter1EnemyConfig.animatedWalk, TestCharacter1EnemyConfig.animatedIdle))
                 .collidable()
                 .build();
 
@@ -67,22 +68,39 @@ public class HvMFactory implements EntityFactory {
         return entity;
     }
 
+    @Spawns("Dawa")
+    public Entity newDawa(SpawnData data) {
+        var entity = FXGL.entityBuilder(data)
+                .type(DawaConfig.basicEntityType)
+                .with(new NetworkIDComponent())
+                .with(new DetailedTypeComponent(DawaConfig.detailedEntityType, DawaConfig.campType))
+                .bbox(new HitBox(BoundingShape.box(DawaConfig.width, DawaConfig.height)))
+                .with(new ControllableComponent(DawaConfig.speed))
+                .with(new MeleeAttackComponent(DawaConfig.attackAnimationTime, DawaConfig.attackBackSwingTime, DawaConfig.damage, DawaConfig.attackRangeWidth, DawaConfig.attackRangeHeight))
+                .with(new HealthComponent(DawaConfig.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(DawaConfig.animatedIdle, DawaConfig.animatedWalk, DawaConfig.animatedAttack))
+                .collidable()
+                .build();
+
+        broadcastSpawnEvent(entity, data, "Dawa");
+        return entity;
+    }
+
     @Spawns("TestCharacter1Bullet")
     public Entity newTestCharacter1Bullet(SpawnData data) {
-        AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1Bullet.png"), 4, 30, 30, Duration.seconds(0.5), 1, 1);
-        AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1Bullet.png"), 4, 30, 30, Duration.seconds(0.5), 0, 3);
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
-                .type(BasicEntityTypes.BULLET)
+                .type(TestCharacter1Config.bullet.basicEntityType)
                 .with(new NetworkIDComponent())
-                .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.HuluBabyCamp))
-                .bbox(new HitBox(BoundingShape.box(30, 30)))
+                .with(new DetailedTypeComponent(TestCharacter1Config.bullet.detailedEntityType, TestCharacter1Config.campType))
+                .bbox(new HitBox(BoundingShape.box(TestCharacter1Config.bullet.width, TestCharacter1Config.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
-                .with(new BulletComponent(damage, sourceID))
-                .with(new AnimatedComponent(animatedIdle, animatedWalk))
+                .with(new BulletComponent(damage, sourceID, TestCharacter1Config.bullet.distance))
+                .with(new ItemAnimatedComponent(TestCharacter1Config.bullet.animatedIdle))
                 .collidable()
                 .build();
 
@@ -92,20 +110,18 @@ public class HvMFactory implements EntityFactory {
 
     @Spawns("TestCharacter1Bullet-Enemy")
     public Entity newTestCharacter1BulletEnemy(SpawnData data) {
-        AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1Bullet.png"), 4, 30, 30, Duration.seconds(0.5), 1, 1);
-        AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1Bullet.png"), 4, 30, 30, Duration.seconds(0.5), 0, 3);
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
-                .type(BasicEntityTypes.BULLET)
+                .type(TestCharacter1EnemyConfig.bullet.basicEntityType)
                 .with(new NetworkIDComponent())
-                .with(new DetailedTypeComponent(DetailedEntityType.TestCharacter1, CampType.MonsterCamp))
-                .bbox(new HitBox(BoundingShape.box(30, 30)))
+                .with(new DetailedTypeComponent(TestCharacter1EnemyConfig.bullet.detailedEntityType, TestCharacter1EnemyConfig.campType))
+                .bbox(new HitBox(BoundingShape.box(TestCharacter1EnemyConfig.bullet.width, TestCharacter1EnemyConfig.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
-                .with(new BulletComponent(damage, sourceID))
-                .with(new AnimatedComponent(animatedIdle, animatedWalk))
+                .with(new BulletComponent(damage, sourceID, TestCharacter1EnemyConfig.bullet.distance))
+                .with(new ItemAnimatedComponent(TestCharacter1EnemyConfig.bullet.animatedIdle))
                 .collidable()
                 .build();
 

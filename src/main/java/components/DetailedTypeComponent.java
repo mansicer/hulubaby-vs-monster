@@ -13,8 +13,12 @@ public class DetailedTypeComponent extends Component {
         this.campType = campType;
     }
 
-    public boolean isEnemy(DetailedTypeComponent other) {
-        return !this.campType.equals(other.campType);
+    public CampType getCampType() {
+        return campType;
+    }
+
+    public DetailedEntityType getDetailedEntityType() {
+        return detailedEntityType;
     }
 
     @Override
