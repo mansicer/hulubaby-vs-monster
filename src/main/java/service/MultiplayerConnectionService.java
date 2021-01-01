@@ -10,16 +10,17 @@ import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import com.almasb.fxgl.entity.components.BoundingBoxComponent;
-import com.almasb.fxgl.input.*;
 import com.almasb.fxgl.net.Connection;
 import com.almasb.fxgl.net.MessageHandler;
 import components.ControllableComponent;
 import components.NetworkIDComponent;
+import javafx.geometry.Rectangle2D;
 import kotlin.collections.AbstractMutableList;
 import kotlin.collections.ArrayDeque;
-import org.jetbrains.annotations.NotNull;
+import types.CampType;
 import util.ComponentUtils;
 import util.EntityUtils;
+import util.PropertyUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -42,8 +43,6 @@ public class MultiplayerConnectionService extends EngineService {
                 updateReplicatedEntities(connection,entities);
         });
     }
-
-
 
     public void updateReplicatedEntities(Connection<Bundle> connection, AbstractMutableList<Entity> entities){
         var removeIDs = new ArrayList<Integer>();
@@ -100,7 +99,7 @@ public class MultiplayerConnectionService extends EngineService {
 
     public void addEntityReplicationReceiver(Connection<Bundle> connection, GameWorld gameWorld){
         connection.addMessageHandlerFX((connection1, bundle) -> {
-            if(bundle.getName().startsWith("ENTITY_SPAWN_EVENT")){
+            if (bundle.getName().startsWith("ENTITY_SPAWN_EVENT")){
                 int netID = bundle.get("NetID");
                 String entityName = bundle.get("entityName");
                 double x = bundle.get("PositionX");
@@ -114,7 +113,7 @@ public class MultiplayerConnectionService extends EngineService {
                 var e = gameWorld.spawn(entityName, spawnData);
                 e.getComponent(NetworkIDComponent.class).setId(netID);
             }
-            else if(bundle.getName().startsWith("ENTITY_UPDATES_EVENT")){
+            else if (bundle.getName().startsWith("ENTITY_UPDATES_EVENT")){
                 int netID = bundle.get("NetID");
                 EntityUtils.getEntityByNetworkID(netID).ifPresent(entity -> {
                     Vec2 position = bundle.get("position");
@@ -126,15 +125,20 @@ public class MultiplayerConnectionService extends EngineService {
                     });
                 });
             }
-            else if(bundle.getName().startsWith("ENTITY_REMOVALS_EVENT")){
+            else if (bundle.getName().startsWith("ENTITY_REMOVALS_EVENT")){
                 var removeIDs = (ArrayList<Integer>) bundle.get("removeIDs");
                 removeIDs.forEach(id -> {
                     EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
                         entity.removeFromWorld();
-                        ArrayList<Integer> removeID = FXGL.geto("removeIDs");
-                        removeIDs.add(EntityUtils.getNetworkID(entity));
                     });
                 });
+            }
+            else if (bundle.getName().startsWith("Reply: ")) {
+                String replyName = bundle.getName().substring("Reply: ".length());
+                if (replyName.equals("Choose Player")) {
+                    int id = bundle.get("playerID");
+                    PropertyUtils.setCurrentPlayerID(id);
+                }
             }
         });
     }
@@ -160,36 +164,82 @@ public class MultiplayerConnectionService extends EngineService {
     public void addInputReplicationReceiver(Connection<Bundle> connection) {
         connection.addMessageHandlerFX((connection1, bundle) -> {
             if (bundle.getName().startsWith("Action: ")) {
-                int id = bundle.get("playerID");
                 String actionName = bundle.getName().substring("Action: ".length());
                 if (actionName.equals("moveUp")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        entity.getComponent(ControllableComponent.class).moveUp();
-                    });
-                } else if (actionName.equals("moveDown")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        entity.getComponent(ControllableComponent.class).moveDown();
-                    });
-                }  else if (actionName.equals("moveLeft")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        entity.getComponent(ControllableComponent.class).moveLeft();
-                    });
-                } else if (actionName.equals("moveRight")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        entity.getComponent(ControllableComponent.class).moveRight();
-                    });
-                } else if (actionName.equals("stopX")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        entity.getComponent(ControllableComponent.class).stopX();
-                    });
-                } else if (actionName.equals("stopY")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        entity.getComponent(ControllableComponent.class).stopY();
-                    });
-                } else if (actionName.equals("attack")) {
-                    EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
-                        ComponentUtils.getAttackComponent(entity).get().attack();
-                    });
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            entity.getComponent(ControllableComponent.class).moveUp();
+                        });
+                    }
+                }
+                else if (actionName.equals("moveDown")) {
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            entity.getComponent(ControllableComponent.class).moveDown();
+                        });
+                    }
+                }
+                else if (actionName.equals("moveLeft")) {
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            entity.getComponent(ControllableComponent.class).moveLeft();
+                        });
+                    }
+                }
+                else if (actionName.equals("moveRight")) {
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            entity.getComponent(ControllableComponent.class).moveRight();
+                        });
+                    }
+                }
+                else if (actionName.equals("stopX")) {
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            entity.getComponent(ControllableComponent.class).stopX();
+                        });
+                    }
+                }
+                else if (actionName.equals("stopY")) {
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            entity.getComponent(ControllableComponent.class).stopY();
+                        });
+                    }
+                }
+                else if (actionName.equals("attack")) {
+                    int id = bundle.get("playerID");
+                    if (id == PropertyUtils.getOpponentPlayerID()) {
+                        EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
+                            ComponentUtils.getAttackComponent(entity).get().attack();
+                        });
+                    }
+                }
+                else if (actionName.equals("Choose Player")) {
+                    double mouseX = bundle.get("mousePositionX");
+                    double mouseY = bundle.get("mousePositionY");
+
+                    var range = new Rectangle2D(mouseX - 6, mouseY - 10, 12, 20);
+                    var entities = FXGL.getGameWorld().getEntitiesInRange(range);
+                    // TODO: choose the closest one
+                    for (Entity entity : entities) {
+                        if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(CampType.MonsterCamp)) {
+                            int id = EntityUtils.getNetworkID(entity);
+
+                            Bundle message = new Bundle("Reply: Choose Player");
+                            message.put("playerID", id);
+                            sendMessage(connection1, message);
+                            PropertyUtils.setOpponentPlayerID(id);
+                            break;
+                        }
+                    }
+
                 }
                 else {
                     System.err.println("Unrecognized Action token " + actionName);

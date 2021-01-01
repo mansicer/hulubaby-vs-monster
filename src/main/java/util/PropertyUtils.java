@@ -9,4 +9,10 @@ public class PropertyUtils {
     public static void setCurrentPlayerID(int id) {
         FXGL.getWorldProperties().setValue("CurrentPlayerID", id);
     }
+    public static int getOpponentPlayerID() {
+        return FXGL.getWorldProperties().getInt("OpponentPlayerID");
+    }
+    public static void setOpponentPlayerID(int id) {
+        FXGL.getWorldProperties().setValue("OpponentPlayerID", id);
+    }
 }

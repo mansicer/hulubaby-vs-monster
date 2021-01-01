@@ -2,18 +2,20 @@ package components;
 
 import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
+import com.almasb.fxgl.entity.Entity;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import util.ComponentUtils;
+import util.EntityUtils;
 import util.NetworkUtils;
 import util.PropertyUtils;
 
 import java.util.Optional;
 
-public class AttackComponent extends OperableComponent {
-    protected double attackAnimationTime = 0.3;
-    protected double attackBackSwingTime = 0.2;
-    protected int damage = 0;
+public abstract class AttackComponent extends OperableComponent {
+    protected double attackAnimationTime;
+    protected double attackBackSwingTime;
+    protected int damage;
     protected boolean isAttacking = false;
 
     AttackComponent(double attackAnimationTime, double attackBackSwingTime, int damage) {
@@ -24,16 +26,24 @@ public class AttackComponent extends OperableComponent {
 
     public void attack() {
         if (NetworkUtils.isServer()) {
-            isAttacking = true;
             if (isOperable) {
+                isAttacking = true;
                 disableOperation();
-                FXGL.getGameTimer().runOnceAfter(() -> {
-                    doAttack();
-                }, Duration.seconds(attackAnimationTime));
-                FXGL.getGameTimer().runOnceAfter(() -> {
-                    enableOperation();
-                    isAttacking = false;
-                }, Duration.seconds(attackAnimationTime + attackBackSwingTime));
+
+                EntityUtils.registerEntityTimer(
+                    Duration.seconds(attackAnimationTime),
+                    EntityUtils.getNetworkID(entity),
+                    e -> {
+                        ComponentUtils.getAttackComponent(e).get().doAttack();
+                });
+
+                EntityUtils.registerEntityTimer(
+                    Duration.seconds(attackAnimationTime + attackBackSwingTime),
+                    EntityUtils.getNetworkID(entity),
+                    e-> {
+                        ComponentUtils.getAttackComponent(e).get().enableOperation();
+                        ComponentUtils.getAttackComponent(e).get().isAttacking = false;
+                });
             }
         }
         if (NetworkUtils.isClient()) {
@@ -49,6 +59,18 @@ public class AttackComponent extends OperableComponent {
         // do nothing
     }
 
+    public boolean isInAttackRange(Entity enemy) {
+        return isInAttackRangeX(enemy) && isInAttackRangeY(enemy);
+    }
+
+    public boolean isInAttackRangeX(Entity enemy) {
+        return false;
+    }
+
+    public boolean isInAttackRangeY(Entity enemy) {
+        return false;
+    }
+
     @Override
     public void read(@NotNull Bundle bundle) {
         super.read(bundle);
@@ -61,5 +83,9 @@ public class AttackComponent extends OperableComponent {
         super.write(bundle);
         bundle.put("damage", damage);
         bundle.put("isAttacking", isAttacking);
+    }
+
+    public boolean isAttacking() {
+        return isAttacking;
     }
 }

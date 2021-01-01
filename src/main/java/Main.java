@@ -52,6 +52,7 @@ import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import service.MultiplayerConnectionService;
 import service.SocketClient;
+import service.SocketService;
 import types.BasicEntityTypes;
 import util.*;
 
@@ -60,6 +61,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
@@ -228,22 +230,22 @@ public class Main extends GameApplication {
         FXGL.getWorldProperties().setValue("isClient",isClient);
         System.err.println(FXGL.getb("isServer"));
         if (isServer) {
-//            try {
-//                new SocketService().serverConnect();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                new SocketService().serverConnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
-//            try {
-//                TimeUnit.SECONDS.sleep(2);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         if (isClient) {
             try {
@@ -265,16 +267,17 @@ public class Main extends GameApplication {
             });
         }
         if (isServer) {
-            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() / 3);
-            FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
+            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, 0);
+            FXGL.spawn("Dawa", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
             Entity enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
-            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() * 2 / 3);
+            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() - 50);
 
-            FXGL.getWorldProperties().setValue("CurrentPlayerID", entity.getComponent(NetworkIDComponent.class).getId());
+            PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
 
-            Bundle message = new Bundle("PlayerAllocation");
-            message.put("playerID", EntityUtils.getNetworkID(enemy));
             NetworkUtils.getServer().getConnections().forEach(connection ->  {
+                PropertyUtils.setOpponentPlayerID(EntityUtils.getNetworkID(enemy));
+                Bundle message = new Bundle("PlayerAllocation");
+                message.put("playerID", EntityUtils.getNetworkID(enemy));
                 NetworkUtils.getMultiplayerService().sendMessage(connection, message);
             });
         }
@@ -301,6 +304,7 @@ public class Main extends GameApplication {
         vars.put("isServer", false);
         vars.put("isClient", false);
         vars.put("CurrentPlayerID", -1);
+        vars.put("OpponentPlayerID", -1);
         vars.put("record",false);
         Properties props = LoadConfigUtils.getProps();
         boolean replay = Boolean.parseBoolean((String) props.getOrDefault("record","false"));
@@ -332,26 +336,14 @@ public class Main extends GameApplication {
 
     @Override
     protected void initPhysics() {
-        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BasicEntityTypes.PLAYER, BasicEntityTypes.PLAYER) {
-            @Override
-            protected void onCollision(Entity a, Entity b) {
-                // TODO: add collision on x and y separately
-                ComponentUtils.getControllableComponent(a).ifPresent(o -> o.resignLastMove());
-                ComponentUtils.getControllableComponent(b).ifPresent(o -> o.resignLastMove());
-            }
-        });
         FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BasicEntityTypes.BULLET, BasicEntityTypes.PLAYER) {
             @Override
-            protected void onCollisionBegin(Entity a, Entity b) {
+            protected void onCollision(Entity a, Entity b) {
                 if (NetworkUtils.isServer()) {
-                    var typeA = a.getComponent(DetailedTypeComponent.class);
-                    var typeB = b.getComponent(DetailedTypeComponent.class);
-                    if (typeA.isEnemy(typeB)) {
+                    if (EntityUtils.isEnemy(a, b)) {
                         int damage = a.getComponent(BulletComponent.class).getDamage();
                         b.getComponent(HealthComponent.class).decreaseHealth(damage);
                         a.removeFromWorld();
-                        ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
-                        removeIDs.add(EntityUtils.getNetworkID(a));
                     }
                 }
             }
@@ -375,6 +367,22 @@ public class Main extends GameApplication {
                 FXGL.set("now",now+1);
             }
         }
+        if (NetworkUtils.isServer()) {
+            checkAI();
+        }
+    }
+
+    protected void checkAI() {
+        List<Entity> controllableEntites = FXGL.getGameWorld().getEntitiesByComponent(ControllableComponent.class);
+        for (Entity entity : controllableEntites) {
+            int id = EntityUtils.getNetworkID(entity);
+            if (id != PropertyUtils.getCurrentPlayerID() && id != PropertyUtils.getOpponentPlayerID()) {
+                entity.getComponent(AIComponent.class).setAIActive(true);
+            }
+            else {
+                entity.getComponent(AIComponent.class).setAIActive(false);
+            }
+        }
     }
 
     protected void checkCurrentPlayer() {
@@ -389,11 +397,11 @@ public class Main extends GameApplication {
                 EntityUtils.getEntityByNetworkID(currentPlayerID).get().getViewComponent().removeChild(playerIcon);
             }
             currentPlayerID = playerID;
-            generatePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
+            geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
         }
     }
 
-    protected void generatePlayerIcon(Entity player) {
+    protected void geneartePlayerIcon(Entity player) {
         int ICON_HEIGHT = 12, ICON_WIDTH = 10;
         var icon = new Polygon(0, 0, ICON_WIDTH, 0, ICON_WIDTH / 2, ICON_HEIGHT);
         icon.setLayoutY(-10 - ICON_HEIGHT - 3);
@@ -402,7 +410,6 @@ public class Main extends GameApplication {
         player.getViewComponent().addChild(icon);
         playerIcon = icon;
     }
-
     public static void main(String[] args) {
         launch(args);
     }

@@ -5,15 +5,12 @@ import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import org.jetbrains.annotations.NotNull;
-import util.EntityUtils;
 import util.NetworkUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MovableComponent extends OperableComponent implements SerializableComponent {
     protected int speedX = 0;
     protected int speedY = 0;
+    protected double forwardDistance = 0;
 
     public MovableComponent(int speedX, int speedY) {
         this.speedX = speedX;
@@ -28,16 +25,25 @@ public class MovableComponent extends OperableComponent implements SerializableC
             } else {
                 entity.setScaleX(1);
             }
-            entity.translateX(speedX * tpf);
-            entity.translateY(speedY * tpf);
+
+            double dx = speedX * tpf;
+            double dy = speedY * tpf;
+
+            entity.translateX(dx);
+            entity.translateY(dy);
+
+            double distance = Math.sqrt(dx * dx + dy * dy);
+            forwardDistance += distance;
 
             // check out of bound entity, only server can remove
             if (checkOutOfBound() && NetworkUtils.isServer()) {
                 entity.removeFromWorld();
-                ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
-                removeIDs.add(EntityUtils.getNetworkID(entity));
             }
         }
+    }
+
+    public double getForwardDistance() {
+        return forwardDistance;
     }
 
     protected boolean checkOutOfBound() {

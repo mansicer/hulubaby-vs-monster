@@ -45,6 +45,7 @@ public class ComponentUtils {
         }
         return ret;
     }
+
     public static void packUpComponentBundle(Bundle bundle, SerializableComponent component) {
         Bundle temporaryBundle = new Bundle("temporaryBundle");
         component.write(temporaryBundle);
