@@ -1,11 +1,15 @@
 package components;
 
 import com.almasb.fxgl.core.serialization.Bundle;
+import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import org.jetbrains.annotations.NotNull;
 import util.ComponentUtils;
+import util.EntityUtils;
+
+import java.util.ArrayList;
 
 public class BulletComponent extends Component implements SerializableComponent {
     int sourceID;
@@ -17,6 +21,8 @@ public class BulletComponent extends Component implements SerializableComponent 
         MovableComponent movableComponent = ComponentUtils.getMovableComponent(entity).get();
         if (movableComponent.getForwardDistance() > bulletDistance) {
             entity.removeFromWorld();
+            ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
+            removeIDs.add(EntityUtils.getNetworkID(entity));
         }
     }
 

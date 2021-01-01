@@ -230,22 +230,22 @@ public class Main extends GameApplication {
         FXGL.getWorldProperties().setValue("isClient",isClient);
         System.err.println(FXGL.getb("isServer"));
         if (isServer) {
-            try {
-                new SocketService().serverConnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                new SocketService().serverConnect();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TimeUnit.SECONDS.sleep(2);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
         if (isClient) {
             try {
@@ -344,6 +344,8 @@ public class Main extends GameApplication {
                         int damage = a.getComponent(BulletComponent.class).getDamage();
                         b.getComponent(HealthComponent.class).decreaseHealth(damage);
                         a.removeFromWorld();
+                        ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
+                        removeIDs.add(EntityUtils.getNetworkID(a));
                     }
                 }
             }
@@ -360,6 +362,7 @@ public class Main extends GameApplication {
             FXGL.getSaveLoadService().saveAndWriteTask(filename).run();
         }
         else if(FXGL.getb("replay")){
+            FXGL.set("isServer",false);
             File[] files = FXGL.geto("files");
             int now = FXGL.geti("now");
             FXGL.getSaveLoadService().readAndLoadTask(files[now].toString().split("\\\\",2)[1]).run();

@@ -235,7 +235,8 @@ public class GameMenu extends FXGLMenu {
     private void replayGame() {
         Properties props = new Properties();
         props.setProperty("record","true");
-//        props.setProperty("isServer","true");
+        props.setProperty("isServer","false");
+        props.setProperty("isClient","false");
         try {
             props.store(new FileOutputStream("src/config.properties"),"server or client config");
         }

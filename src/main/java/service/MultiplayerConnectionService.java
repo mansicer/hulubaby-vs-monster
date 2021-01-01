@@ -130,6 +130,8 @@ public class MultiplayerConnectionService extends EngineService {
                 removeIDs.forEach(id -> {
                     EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
                         entity.removeFromWorld();
+                        ArrayList<Integer> removeID = FXGL.geto("removeIDs");
+                        removeID.add(EntityUtils.getNetworkID(entity));
                     });
                 });
             }
