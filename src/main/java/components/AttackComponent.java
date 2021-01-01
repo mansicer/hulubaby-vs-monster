@@ -34,15 +34,15 @@ public abstract class AttackComponent extends OperableComponent {
                     Duration.seconds(attackAnimationTime),
                     EntityUtils.getNetworkID(entity),
                     e -> {
-                    ComponentUtils.getAttackComponent(e).get().doAttack();
+                        ComponentUtils.getAttackComponent(e).get().doAttack();
                 });
 
                 EntityUtils.registerEntityTimer(
                     Duration.seconds(attackAnimationTime + attackBackSwingTime),
                     EntityUtils.getNetworkID(entity),
                     e-> {
-                    ComponentUtils.getAttackComponent(e).get().enableOperation();
-                    ComponentUtils.getAttackComponent(e).get().isAttacking = false;
+                        ComponentUtils.getAttackComponent(e).get().enableOperation();
+                        ComponentUtils.getAttackComponent(e).get().isAttacking = false;
                 });
             }
         }

@@ -53,12 +53,10 @@ public class HealthComponent extends Component implements SerializableComponent 
 
     public void increaseHealth(int inc) {
         this.health += inc;
-        checkHealth();
     }
 
     public void decreaseHealth(int dec) {
         this.health -= dec;
-        checkHealth();
     }
 
     @Override
@@ -70,6 +68,7 @@ public class HealthComponent extends Component implements SerializableComponent 
             healthUI.setScaleX(1);
         }
         healthUI.setVisible(isVisible);
+        checkHealth();
     }
 
     @Override

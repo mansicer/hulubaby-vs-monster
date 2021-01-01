@@ -38,6 +38,7 @@ public class MeleeAttackComponent extends AttackComponent {
         List<Entity> entityList = FXGL.getGameWorld().getEntitiesInRange(range);
         entityList.removeIf(e -> !e.hasComponent(ControllableComponent.class));
         entityList.removeIf(e -> !EntityUtils.isEnemy(entity, e));
+        System.err.println(entityList.size());
         for (Entity e : entityList) {
             e.getComponent(HealthComponent.class).decreaseHealth(damage);
         }

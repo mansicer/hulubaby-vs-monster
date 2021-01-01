@@ -22,4 +22,11 @@ public class NetworkIDComponent extends Component {
     public boolean isComponentInjectionRequired() {
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "NetworkIDComponent{" +
+                "id=" + id +
+                '}';
+    }
 }

@@ -32,7 +32,7 @@ public class Main extends GameApplication {
     private static final String GameTitle = "Hulubabies vs Monsters";
     private static final int GameWidth = 800;
     private static final int GameHeight = 600;
-    private static final String GameVersion = "0.2.0";
+    private static final String GameVersion = "0.2.1";
     private static final int GameNetworkPort = 6657;
     private static final String GameServerIP = "localhost";
 
