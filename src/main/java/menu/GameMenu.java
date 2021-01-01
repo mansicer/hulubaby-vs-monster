@@ -1,44 +1,51 @@
 package menu;
 
+import com.almasb.fxgl.app.FXGLApplication;
+import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.MenuType;
-import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
-import config.Config;
+import com.almasb.fxgl.scene.Scene;
+import com.almasb.fxgl.ui.InGamePanel;
+import com.almasb.fxgl.ui.MDIWindow;
+import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
+import javafx.scene.layout.*;
+import javafx.scene.paint.*;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.jetbrains.annotations.NotNull;
-import util.NetworkUtils;
+import org.jetbrains.annotations.Nullable;
+import util.ZipUtils;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GameMenu extends FXGLMenu {
     private ObjectProperty<menuButton> selectButton;
@@ -47,7 +54,7 @@ public class GameMenu extends FXGLMenu {
 
         menuButton startGame = new menuButton("开始游戏","创建房间等待对战玩家加入",this::startGame);
         menuButton joinGame = new menuButton("加入游戏","加入他人房间进行对战",this::joinGame);
-        menuButton options = new menuButton("设置","",()->{});
+        menuButton options = new menuButton("存档回放","选择存档并观看回放",this::replayGame);
         menuButton quitGame = new menuButton("退出游戏","结束程序并返回桌面",()->fireExit());
 
         selectButton = new SimpleObjectProperty<>(startGame);
@@ -175,9 +182,27 @@ public class GameMenu extends FXGLMenu {
         }
     }
 
+    private class mdiButton extends StackPane {
+        private String name;
+        private Runnable action;
+        private Rectangle button;
+        private Text text;
+
+        public mdiButton(String name,Runnable action){
+            this.name = name;
+            this.action = action;
+            text = FXGL.getUIFactoryService().newText(this.name,Color.WHITE,15);
+            button = new Rectangle();
+            button.setAccessibleText(name);
+            button.setHeight(40);
+            button.setWidth(100);
+            button.setArcHeight(20);
+            button.setArcWidth(20);
+            getChildren().addAll(button);
+        }
+
+    }
     private void startGame(){
-        System.out.println("fire before");
-        fireNewGame();
         Properties props = new Properties();
         props.setProperty("isServer", "true");
         props.setProperty("isClient", "false");
@@ -187,6 +212,8 @@ public class GameMenu extends FXGLMenu {
         catch (IOException e){
             System.out.println("no such file or directory");
         }
+        System.out.println("fire before");
+        fireNewGame();
     }
 
     private void joinGame(){
@@ -203,6 +230,153 @@ public class GameMenu extends FXGLMenu {
             }
             fireNewGame();
         });
+    }
 
+    private void replayGame() {
+        Properties props = new Properties();
+        props.setProperty("record","true");
+//        props.setProperty("isServer","true");
+        try {
+            props.store(new FileOutputStream("src/config.properties"),"server or client config");
+        }
+        catch (IOException e){
+            System.out.println("no such file or directory");
+        }
+        MDIWindow mdiWindow = FXGL.getUIFactoryService().newWindow();
+        mdiWindow.setCanMove(false);
+        mdiWindow.setTitle("存档回放");
+        mdiWindow.setPrefSize(getAppWidth()*3/5,getAppHeight()*3/5);
+        mdiWindow.setTranslateX(getAppWidth()/5);
+        mdiWindow.setTranslateY(getAppHeight()/5);
+        mdiWindow.setCanClose(false);
+        mdiWindow.setCanMinimize(false);
+        mdiWindow.setCanResize(false);
+        getContentRoot().getStylesheets().add("style/tableview.css");
+
+        Pane pane = new Pane();
+        Button button = FXGL.getUIFactoryService().newButton("test");
+        button.setOnAction(e->{
+            getContentRoot().getChildren().remove(mdiWindow);
+        });
+
+        TableView tableView = new TableView();
+        TableColumn<String,String> choiceColumn = new TableColumn<String, String>("存档");
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        choiceColumn.setCellValueFactory(cellData->{
+            return new ReadOnlyStringWrapper(cellData.getValue());
+        });
+//        choiceColumn.setStyle("-fx-alignment: center;-fx-font-size: 20;");
+//        choiceColumn.setStyle("-fx-text-fill: rgba(68,68,68,0.96)");
+        tableView.getColumns().add(choiceColumn);
+        File f = new File("./hulu_record_video");
+        ObservableList<String> videoFiles = FXCollections.observableArrayList();
+        File[] files =  f.listFiles();
+        String pattern = "hulu_record_video\\\\(.*?)_hulu_recordVideo\\.zip";
+        for (int i = 0; i < files.length; i++) {
+            Matcher matcher = Pattern.compile(pattern).matcher(files[i].toString());
+            if(matcher.find()){
+                videoFiles.add(matcher.group(1));
+//                System.out.println(matcher.group(1));
+            }
+        }
+        tableView.setItems(videoFiles);
+        tableView.setMaxHeight(mdiWindow.getPrefHeight()*4/5);
+        tableView.setEditable(false);
+
+        Rectangle rec = new Rectangle();
+        rec.setWidth(100);
+        rec.setHeight(40);
+        rec.setArcWidth(20);
+        rec.setArcHeight(20);
+
+        Button isLoad = FXGL.getUIFactoryService().newButton("加载");
+        isLoad.setMaxHeight(rec.getHeight());
+        isLoad.setMaxWidth(rec.getWidth());
+        isLoad.setShape(rec);
+        isLoad.setTextAlignment(TextAlignment.CENTER);
+        tableView.getSelectionModel().select(0,choiceColumn);
+        isLoad.setOnAction(actionEvent -> {
+            String selectedItem = (String) tableView.getSelectionModel().getSelectedItem();
+            ZipUtils.unzip("./hulu_record_video/"+selectedItem+"_hulu_recordVideo.zip","./temp_replay_hulubrother");
+            fireNewGame();
+        });
+
+        Button cancel = FXGL.getUIFactoryService().newButton("关闭");
+        cancel.setOnAction(e->{
+            getContentRoot().getChildren().removeAll(mdiWindow);
+        });
+        cancel.setMaxHeight(rec.getHeight());
+        cancel.setMaxWidth(rec.getWidth());
+        cancel.setShape(rec);
+        cancel.setTextAlignment(TextAlignment.CENTER);
+
+        Button remove = FXGL.getUIFactoryService().newButton("删除");
+        remove.setMaxHeight(rec.getHeight());
+        remove.setMaxWidth(rec.getWidth());
+        remove.setShape(rec);
+        remove.setTextAlignment(TextAlignment.CENTER);
+        remove.setOnAction(actionEvent -> {
+            String selectedItem = (String) tableView.getSelectionModel().getSelectedItem();
+            File file = new File("./hulu_record_video/"+selectedItem+"_hulu_recordVideo.zip");
+            if(file.exists()){
+                file.delete();
+            }
+            videoFiles.remove(selectedItem);
+        });
+
+        Button recordAdd = FXGL.getUIFactoryService().newButton("导入");
+        recordAdd.setMaxHeight(rec.getHeight());
+        recordAdd.setMaxWidth(rec.getWidth());
+        recordAdd.setShape(rec);
+        recordAdd.setTextAlignment(TextAlignment.CENTER);
+        recordAdd.setOnAction(actionEvent -> {
+            Stage stage = new Stage();
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(stage);
+            System.out.println(file.getName());
+            if(file.exists()&&file.getName().endsWith("_hulu_recordVideo.zip")){
+                try {
+                    int byteread = 0;
+                    InputStream inStream = new FileInputStream(file.toString()); //读入原文件
+                    FileOutputStream fs = new FileOutputStream("./hulu_record_video/"+file.getName());
+                    byte[] buffer = new byte[1444];
+                    while ( (byteread = inStream.read(buffer)) != -1) {
+                        fs.write(buffer, 0, byteread);
+                    }
+                    inStream.close();
+                    fs.close();
+                    videoFiles.add(file.getName().replace("_hulu_recordVideo.zip",""));
+                }
+                catch (Exception e) {
+                    System.out.println("复制单个文件操作出错");
+                    e.printStackTrace();
+                }
+            }
+            else if(!file.getName().endsWith("_hulu_recordVideo.zip")){
+                FXGL.getDialogService().showErrorBox("错误的文件命名或格式",()->{});
+            }
+        });
+
+        VBox funcBox = new VBox(20,
+                isLoad,
+                recordAdd,
+                remove,
+                cancel);
+        funcBox.setScaleX(0.8);
+        funcBox.setScaleY(0.8);
+        funcBox.setTranslateY(mdiWindow.getPrefHeight()*4/20);
+        funcBox.setTranslateX(mdiWindow.getPrefWidth()/25);
+
+        HBox hBox = new HBox();
+        hBox.setTranslateY(mdiWindow.getPrefHeight()/20);
+        hBox.setTranslateX(mdiWindow.getPrefWidth()*2/20);
+        hBox.getChildren().addAll(tableView,funcBox);
+        pane.getChildren().addAll(hBox);
+        mdiWindow.setBackground(new Background(new BackgroundImage(
+                new Image("assets/textures/background/recordChoice.jpg"),
+                null,null,new BackgroundPosition(null,0.1,true,null,0,true), null)));
+        mdiWindow.setContentPane(pane);
+        getContentRoot().getChildren().add(mdiWindow);
+//        ZipUtils.unzip("./test.zip","./temp_replay_hulubrother");
     }
 }

@@ -6,6 +6,9 @@ import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import javafx.scene.control.ProgressBar;
 import org.jetbrains.annotations.NotNull;
+import util.EntityUtils;
+
+import java.util.ArrayList;
 
 public class HealthComponent extends Component implements SerializableComponent {
     protected int health = 100;
@@ -40,6 +43,8 @@ public class HealthComponent extends Component implements SerializableComponent 
         this.health = Math.min(this.health, maxHealth);
         if (this.health <= 0) {
             entity.removeFromWorld();
+            ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
+            removeIDs.add(EntityUtils.getNetworkID(entity));
         }
     }
 

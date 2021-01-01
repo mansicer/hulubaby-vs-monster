@@ -125,7 +125,13 @@ hs_err_pid*
 .DS_Store
 
 *.properties
+*.sav
 
+temp_record_hulubrother
+temp_replay_hulubrother
+record_video
+
+*.zip
 # Created by https://www.toptal.com/developers/gitignore/api/maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=maven
 

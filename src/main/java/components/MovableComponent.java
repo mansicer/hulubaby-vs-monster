@@ -5,7 +5,11 @@ import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import org.jetbrains.annotations.NotNull;
+import util.EntityUtils;
 import util.NetworkUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MovableComponent extends OperableComponent implements SerializableComponent {
     protected int speedX = 0;
@@ -30,6 +34,8 @@ public class MovableComponent extends OperableComponent implements SerializableC
             // check out of bound entity, only server can remove
             if (checkOutOfBound() && NetworkUtils.isServer()) {
                 entity.removeFromWorld();
+                ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
+                removeIDs.add(EntityUtils.getNetworkID(entity));
             }
         }
     }

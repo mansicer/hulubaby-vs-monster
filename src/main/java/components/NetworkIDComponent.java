@@ -1,13 +1,14 @@
 package components;
 
-import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.component.Component;
 
 public class NetworkIDComponent extends Component {
     private static int uniqueID = 0;
     private int id;
+    private String spawnName;
 
-    public NetworkIDComponent() {
+    public NetworkIDComponent(String spawnName) {
+        this.spawnName = spawnName;
         this.id = uniqueID++;
     }
 
@@ -17,6 +18,14 @@ public class NetworkIDComponent extends Component {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getSpawnName(){
+        return spawnName;
+    }
+
+    public void setSpawnName(String spawnName){
+        this.spawnName = spawnName;
     }
 
     public boolean isComponentInjectionRequired() {

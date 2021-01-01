@@ -1,49 +1,195 @@
+import com.almasb.fxgl.animation.AnimatedValue;
+import com.almasb.fxgl.animation.Interpolators;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.app.MenuItem;
 import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.SceneFactory;
+import com.almasb.fxgl.core.collection.PropertyChangeListener;
+import com.almasb.fxgl.core.math.Vec2;
 import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
+import com.almasb.fxgl.entity.SpawnData;
+import com.almasb.fxgl.entity.component.SerializableComponent;
 import com.almasb.fxgl.input.Input;
+import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Server;
-import com.almasb.fxgl.net.UDPClientConfig;
-import com.almasb.fxgl.net.UDPServerConfig;
 import com.almasb.fxgl.physics.CollisionHandler;
-import components.BulletComponent;
-import components.DetailedTypeComponent;
-import components.HealthComponent;
-import components.NetworkIDComponent;
+import com.almasb.fxgl.profile.DataFile;
+import com.almasb.fxgl.profile.SaveLoadHandler;
+import com.almasb.fxgl.ui.MDIWindow;
+import components.*;
 import config.Config;
 import input.BehaviorControl;
 import input.DirectionControl;
 import input.GameControl;
 import input.MouseControl;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.property.BooleanProperty;
+import javafx.collections.FXCollections;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.util.Duration;
 import menu.GameMenu;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import service.MultiplayerConnectionService;
 import service.SocketClient;
-import service.SocketService;
 import types.BasicEntityTypes;
-import util.ComponentUtils;
-import util.EntityUtils;
-import util.NetworkUtils;
-import util.PropertyUtils;
+import util.*;
 
-import java.io.FileInputStream;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+
+
 public class Main extends GameApplication {
     private int currentPlayerID = -1;
     private Polygon playerIcon;
+
+    @Override
+    protected void onPreInit() {
+        File f = new File("./temp_record_hulubrother");
+        if(f.exists()){
+            File[] files = f.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                files[i].delete();
+            }
+            f.mkdir();
+        }
+        FXGL.getSaveLoadService().addHandler(new SaveLoadHandler() {
+            @Override
+            public void onSave(@NotNull DataFile dataFile) {
+                Bundle bundle = new Bundle("gameData");
+
+                FXGL.getGameWorld().getEntities().forEach(entity -> {
+                    Bundle entity_bd = new Bundle("");
+                    NetworkIDComponent networkIDComponent = entity.getComponent(NetworkIDComponent.class);
+                    var networkID = networkIDComponent.getId();
+                    String spawnName = networkIDComponent.getSpawnName();
+                    if(entity.isActive()) {
+                        entity.getComponents().forEach(component -> {
+                            if (ComponentUtils.checkComponentUpdatable(component)) {
+                                ComponentUtils.packUpComponentBundle(entity_bd, (SerializableComponent) component);
+                            }
+                        });
+                        entity_bd.put("position",new Vec2(entity.getPosition()));
+                        entity_bd.put("spawnName",spawnName);
+                        Bundle spawnData = new Bundle("");
+                        entity.getComponent(SpawnDataComponent.class).write(spawnData);
+                        entity_bd.put("spawnData",spawnData);
+                        bundle.put(Integer.toString(networkID),entity_bd);
+                    }
+                });
+                ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
+                ArrayList<Integer> removeIDsCopy = (ArrayList<Integer>) removeIDs.clone();
+                bundle.put("removeIDs",removeIDsCopy);
+//                System.err.println(removeIDs.size());
+                Bundle vars = new Bundle("");
+//                vars.put("isServer",FXGL.getb("isServer"));
+//                vars.put("isClient",FXGL.getb("isClient"));
+                vars.put("CurrentPlayerID",FXGL.geti("CurrentPlayerID"));
+                bundle.put("vars",vars);
+                dataFile.putBundle(bundle);
+                removeIDs.clear();
+            }
+
+            @Override
+            public void onLoad(@NotNull DataFile dataFile) {
+                Bundle bundle = dataFile.getBundle("gameData");
+                bundle.getData().forEach((name, value) -> {
+                    if(name.equals("removeIDs")){
+                        ArrayList<Integer> removeIDs = (ArrayList<Integer>) value;
+                        for(int id:removeIDs){
+                            System.err.println(id);
+                            EntityUtils.getEntityByNetworkID(id).get().removeFromWorld();
+                        }
+                    }
+                    else if(name.equals("vars")){
+                        Bundle vars = bundle.get("vars");
+                        vars.getData().forEach(FXGL::set);
+                    }
+                    else{
+                        int networkID = Integer.parseInt(name);
+                        Bundle bd = (Bundle) value;
+                        var entities = FXGL.getGameWorld().getEntitiesByComponent(NetworkIDComponent.class).stream().filter(entity ->
+                                entity.getComponent(NetworkIDComponent.class).getId() == networkID
+                        );
+                        var ret = entities.findFirst();
+                        if (ret.isEmpty()) {
+                            String spawnName = bd.get("spawnName");
+                            System.out.println(spawnName);
+                            Vec2 position = bd.get("position");
+                            SpawnData spawnData = new SpawnData(position.x,position.y);
+                            Bundle spawnBundle = bd.get("spawnData");
+                            spawnData.getData().putAll(spawnBundle.getData());
+                            Entity spawn = FXGL.getGameWorld().spawn(spawnName, spawnData);
+                            spawn.getComponents().forEach(component -> {
+                                if (ComponentUtils.checkComponentUpdatable(component)) {
+                                    ComponentUtils.unpackComponentBundle(bd, (SerializableComponent) component);
+                                }
+                            });
+                            spawn.getComponent(NetworkIDComponent.class).setId(networkID);
+                        }
+                        else {
+                            Optional<Entity> entityByNetworkID = EntityUtils.getEntityByNetworkID(networkID);
+                            entityByNetworkID.ifPresent(entity -> {
+                                Vec2 position = bd.get("position");
+                                entity.setPosition(position);
+                                entity.getComponents().forEach(component -> {
+                                    if (ComponentUtils.checkComponentUpdatable(component)) {
+                                        ComponentUtils.unpackComponentBundle(bd, (SerializableComponent) component);
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    protected void initUI() {
+        HBox hBox = new HBox();
+
+        Circle circle = new Circle();
+        circle.setRadius(5);
+        circle.fillProperty().setValue(Color.RED);
+
+        FXGL.getGameTimer().runAtInterval(()->{
+            circle.setVisible(!circle.isVisible());
+        },Duration.seconds(0.8));
+        Text text = FXGL.getUIFactoryService().newText("录制中",Color.RED,10);
+        text.setTranslateX(5);
+        hBox.getChildren().addAll(circle,text);
+        hBox.setBackground(Background.EMPTY);
+        hBox.setLayoutX(20);
+        hBox.setLayoutY(20);
+        hBox.visibleProperty().bind(FXGL.getbp("record"));
+        FXGL.addUINode(hBox);
+    }
 
     @Override
     protected void initSettings(GameSettings gameSettings) {
@@ -55,7 +201,6 @@ public class Main extends GameApplication {
         gameSettings.setMainMenuEnabled(true);
         gameSettings.setGameMenuEnabled(true);
         gameSettings.setManualResizeEnabled(true);
-//        gameSettings.setDeveloperMenuEnabled(true);
         gameSettings.setEnabledMenuItems(EnumSet.of(MenuItem.EXTRA));
         gameSettings.setSceneFactory(new SceneFactory(){
             @NotNull
@@ -70,45 +215,35 @@ public class Main extends GameApplication {
     protected void initGame() {
         FXGL.getGameWorld().addEntityFactory(new HvMFactory());
         FXGL.getGameScene().getViewport().setBounds(0, 0, Config.GameWidth, Config.GameHeight);
-        Properties props = new Properties();
-        try {
-            props.load(new FileInputStream("src/config.properties"));
-        }
-        catch (IOException e){
-            System.out.println("no such file or directory");
-        }
-        String isserver = props.getProperty("isServer");
-        String isclient = props.getProperty("isClient");
-        boolean isServer=false;
-        if (isserver.equals("true")){
-            isServer = true;
-        }
-        boolean isClient=false;
-        if(isclient.equals("true")){
-            isClient = true;
-        }
-
+        Properties props = LoadConfigUtils.getProps();
+        String isserver = (String)props.getOrDefault("isServer","false");
+        String isclient = (String)props.getOrDefault("isClient","false");
+        System.out.println(isserver);
+        System.out.println(isclient);
+        boolean isServer = Boolean.parseBoolean(isserver);
+        boolean isClient= Boolean.parseBoolean(isclient);
+        System.out.println(isServer);
+        System.out.println(isClient);
         FXGL.getWorldProperties().setValue("isServer",isServer);
         FXGL.getWorldProperties().setValue("isClient",isClient);
-
+        System.err.println(FXGL.getb("isServer"));
         if (isServer) {
-            try {
-                new SocketService().serverConnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            UDPServerConfig<Bundle> bundle= new UDPServerConfig<Bundle>(Bundle.class,1048576);
-            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort,bundle);
+//            try {
+//                new SocketService().serverConnect();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TimeUnit.SECONDS.sleep(2);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
         if (isClient) {
             try {
@@ -117,12 +252,11 @@ public class Main extends GameApplication {
                 e.printStackTrace();
             }
             try {
-                TimeUnit.SECONDS.sleep(0);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            UDPClientConfig<Bundle> config = new UDPClientConfig<Bundle>(Bundle.class,1024);
-            Client<Bundle> client = FXGL.getNetService().newUDPClient(props.getProperty("ip"), Config.GameNetworkPort,config);
+            Client<Bundle> client = FXGL.getNetService().newUDPClient(props.getProperty("ip"), Config.GameNetworkPort);
             client.connectAsync();
             FXGL.getWorldProperties().setValue("client", client);
             client.setOnConnected(bundleConnection -> {
@@ -130,7 +264,6 @@ public class Main extends GameApplication {
                 NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getGameWorld());
             });
         }
-
         if (isServer) {
             Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() / 3);
             FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
@@ -165,11 +298,23 @@ public class Main extends GameApplication {
 
     @Override
     protected void initGameVars(Map<String, Object> vars) {
-        vars.put("server", Optional.empty());
-        vars.put("client", Optional.empty());
         vars.put("isServer", false);
         vars.put("isClient", false);
         vars.put("CurrentPlayerID", -1);
+        vars.put("record",false);
+        Properties props = LoadConfigUtils.getProps();
+        boolean replay = Boolean.parseBoolean((String) props.getOrDefault("record","false"));
+        vars.put("replay",replay);
+        File f = new File("./temp_replay_hulubrother");
+        if(!f.exists())
+            f.mkdir();
+        vars.put("files",f.listFiles());
+        vars.put("now",0);
+        if(!replay){
+            vars.put("server", Optional.empty());
+            vars.put("client", Optional.empty());
+        }
+        vars.put("removeIDs",new ArrayList<Integer>());
     }
 
     @Override
@@ -179,9 +324,10 @@ public class Main extends GameApplication {
         input.addAction(new DirectionControl.MoveDown(), KeyCode.DOWN);
         input.addAction(new DirectionControl.MoveLeft(), KeyCode.LEFT);
         input.addAction(new DirectionControl.MoveRight(), KeyCode.RIGHT);
-        input.addAction(new GameControl.StartGame(), KeyCode.SPACE);
+        input.addAction(new GameControl.RecordGame(), KeyCode.SPACE);
         input.addAction(new BehaviorControl.Attack(), KeyCode.A);
         input.addAction(new MouseControl.ChoosePlayer(), MouseButton.PRIMARY);
+        input.addAction(new GameControl.SaveRecord(), KeyCode.Z);
     }
 
     @Override
@@ -204,6 +350,8 @@ public class Main extends GameApplication {
                         int damage = a.getComponent(BulletComponent.class).getDamage();
                         b.getComponent(HealthComponent.class).decreaseHealth(damage);
                         a.removeFromWorld();
+                        ArrayList<Integer> removeIDs = FXGL.geto("removeIDs");
+                        removeIDs.add(EntityUtils.getNetworkID(a));
                     }
                 }
             }
@@ -213,6 +361,20 @@ public class Main extends GameApplication {
     @Override
     protected void onUpdate(double tpf) {
         checkCurrentPlayer();
+        if(FXGL.getb("record")){
+            String path = "./temp_record_hulubrother/";
+            String time = Long.toString(System.currentTimeMillis());
+            String filename = path+time+".sav";
+            FXGL.getSaveLoadService().saveAndWriteTask(filename).run();
+        }
+        else if(FXGL.getb("replay")){
+            File[] files = FXGL.geto("files");
+            int now = FXGL.geti("now");
+            FXGL.getSaveLoadService().readAndLoadTask(files[now].toString().split("\\\\",2)[1]).run();
+            if(now< files.length -1){
+                FXGL.set("now",now+1);
+            }
+        }
     }
 
     protected void checkCurrentPlayer() {
@@ -227,11 +389,11 @@ public class Main extends GameApplication {
                 EntityUtils.getEntityByNetworkID(currentPlayerID).get().getViewComponent().removeChild(playerIcon);
             }
             currentPlayerID = playerID;
-            geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
+            generatePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
         }
     }
 
-    protected void geneartePlayerIcon(Entity player) {
+    protected void generatePlayerIcon(Entity player) {
         int ICON_HEIGHT = 12, ICON_WIDTH = 10;
         var icon = new Polygon(0, 0, ICON_WIDTH, 0, ICON_WIDTH / 2, ICON_HEIGHT);
         icon.setLayoutY(-10 - ICON_HEIGHT - 3);
