@@ -177,7 +177,6 @@ public class ZipUtils {
         }
     }
 
-
     public static boolean zip(String directory,String zipName){
         File f = new File(directory);
         File targetDirectory = new File("./hulu_record_video");

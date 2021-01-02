@@ -24,7 +24,7 @@ public class SocketClient {
 
                 //下面是你要传输到另一台电脑的IP地址和端口
                 Socket socket = new Socket(host, 5209);
-                System.out.println("客户端启动成功");
+//                System.out.println("客户端启动成功");
                 // 2、获取输出流，向服务器端发送信息
                 // 向本机的52000端口发出客户请求
 //            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -39,7 +39,7 @@ public class SocketClient {
                 String content = in.readLine();
                 if (content.equals("connected")) {
                     // 在系统标准输出上打印读入的字符串
-                    System.out.println("服务:" + content);
+//                    System.out.println("服务:" + content);
                 }
                 //4、关闭资源
                 write.close(); // 关闭Socket输出流

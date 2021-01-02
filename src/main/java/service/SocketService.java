@@ -1,5 +1,7 @@
 package service;
 
+import com.almasb.fxgl.dsl.FXGL;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +20,7 @@ public class SocketService {
                 //下面是端口，端口可以和客户端代码里面的端口一样
                 server=new ServerSocket(5209);
                 //b)指定绑定的端口，并监听此端口。
-                System.out.println("服务器启动成功");
+//                System.out.println("服务器启动成功");
                 //创建一个ServerSocket在端口5209监听客户请求
             }catch(Exception e) {
                 System.out.println("没有启动监听："+e);
@@ -41,7 +43,7 @@ public class SocketService {
             //由Socket对象得到输出流，并构造PrintWriter对象
             //由系统标准输入设备构造BufferedReader对象
             String content = in.readLine();
-            System.out.println("Client:"+content);
+//            System.out.println("Client:"+content);
             //在标准输出上打印从客户端读入的字符串
 //            line=br.readLine();
             //从标准输入读入一字符串

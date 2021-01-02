@@ -45,7 +45,7 @@ public class HvMFactory implements EntityFactory {
                 ))
                 .with(new HealthComponent(TestCharacter1Config.health))
                 .with(new AIComponent())
-                .with(new PlayerAnimatedComponent(TestCharacter1Config.animatedIdle, TestCharacter1Config.animatedWalk, TestCharacter1Config.animatedIdle))
+                .with(new PlayerAnimatedComponent(TestCharacter1Config.animatedIdle, TestCharacter1Config.animatedWalk, TestCharacter1Config.animatedIdle, null))
                 .with(spawnDataComponent)
                 .collidable()
                 .build();
@@ -67,7 +67,7 @@ public class HvMFactory implements EntityFactory {
                 .with(new RangedAttackComponent(TestCharacter1EnemyConfig.attackAnimationTime, TestCharacter1EnemyConfig.attackBackSwingTime, TestCharacter1EnemyConfig.damage, TestCharacter1EnemyConfig.bullet.speed, "TestCharacter1Bullet-Enemy", TestCharacter1EnemyConfig.bullet.height, TestCharacter1EnemyConfig.bullet.distance))
                 .with(new HealthComponent(TestCharacter1EnemyConfig.health))
                 .with(new AIComponent())
-                .with(new PlayerAnimatedComponent(TestCharacter1EnemyConfig.animatedIdle, TestCharacter1EnemyConfig.animatedWalk, TestCharacter1EnemyConfig.animatedIdle))
+                .with(new PlayerAnimatedComponent(TestCharacter1EnemyConfig.animatedIdle, TestCharacter1EnemyConfig.animatedWalk, TestCharacter1EnemyConfig.animatedIdle, null))
                 .with(spawnDataComponent)
                 .collidable()
                 .build();
@@ -89,7 +89,7 @@ public class HvMFactory implements EntityFactory {
                 .with(new MeleeAttackComponent(DawaConfig.attackAnimationTime, DawaConfig.attackBackSwingTime, DawaConfig.damage, DawaConfig.attackRangeWidth, DawaConfig.attackRangeHeight))
                 .with(new HealthComponent(DawaConfig.health))
                 .with(new AIComponent())
-                .with(new PlayerAnimatedComponent(DawaConfig.animatedIdle, DawaConfig.animatedWalk, DawaConfig.animatedAttack))
+                .with(new PlayerAnimatedComponent(DawaConfig.animatedIdle, DawaConfig.animatedWalk, DawaConfig.animatedAttack, DawaConfig.attackEffect))
                 .with(spawnDataComponent)
                 .collidable()
                 .build();

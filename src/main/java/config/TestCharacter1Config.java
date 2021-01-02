@@ -24,7 +24,7 @@ public class TestCharacter1Config {
 
     public static final double attackAnimationTime = 0.3;
     public static final double attackBackSwingTime = 0.3;
-    public static final int damage = 10;
+    public static final int damage = 100;
 
     public static class bullet {
         public static final String name = "TestCharacter1Bullet";

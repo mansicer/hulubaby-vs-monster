@@ -2,8 +2,11 @@ package components;
 
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
+import com.almasb.fxgl.texture.AnimatedTexture;
+import com.almasb.fxgl.texture.AnimationChannel;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import util.EntityUtils;
 
 import java.util.List;
@@ -34,11 +37,12 @@ public class MeleeAttackComponent extends AttackComponent {
             x -= attackRangeWidth;
         }
         double y = entity.getY() + entity.getHeight() / 2 - attackRangeHeight / 2;
+
         Rectangle2D range = new Rectangle2D(x, y, attackRangeWidth, attackRangeHeight);
         List<Entity> entityList = FXGL.getGameWorld().getEntitiesInRange(range);
         entityList.removeIf(e -> !e.hasComponent(ControllableComponent.class));
         entityList.removeIf(e -> !EntityUtils.isEnemy(entity, e));
-        System.err.println(entityList.size());
+//        System.err.println(entityList.size());
         for (Entity e : entityList) {
             e.getComponent(HealthComponent.class).decreaseHealth(damage);
         }

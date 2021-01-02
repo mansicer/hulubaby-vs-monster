@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import util.ZipUtils;
 
 import java.io.*;
+import java.net.Inet4Address;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -63,14 +64,21 @@ public class GameMenu extends FXGLMenu {
         descriptionText.textProperty().bind(
                 Bindings.createObjectBinding(()->selectButton.get().description,selectButton)
         );
-
+        Text IPContent = null;
+        try {
+            IPContent = FXGL.getUIFactoryService().newText("@IP:" + Inet4Address.getLocalHost().getHostAddress());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         var box = new VBox(15,
                 startGame,
                 joinGame,
                 options,
                 quitGame,
                 new LineSeparator(),
-                descriptionText);
+                descriptionText,
+                IPContent);
         box.setTranslateX(FXGL.getAppWidth()/4);
         box.setTranslateY(FXGL.getAppHeight()/3);
 
@@ -203,6 +211,8 @@ public class GameMenu extends FXGLMenu {
 
     }
     private void startGame(){
+//        System.out.println("fire before");
+
         Properties props = new Properties();
         props.setProperty("isServer", "true");
         props.setProperty("isClient", "false");
@@ -212,7 +222,6 @@ public class GameMenu extends FXGLMenu {
         catch (IOException e){
             System.out.println("no such file or directory");
         }
-        System.out.println("fire before");
         fireNewGame();
     }
 
@@ -255,10 +264,6 @@ public class GameMenu extends FXGLMenu {
         getContentRoot().getStylesheets().add("style/tableview.css");
 
         Pane pane = new Pane();
-        Button button = FXGL.getUIFactoryService().newButton("test");
-        button.setOnAction(e->{
-            getContentRoot().getChildren().remove(mdiWindow);
-        });
 
         TableView tableView = new TableView();
         TableColumn<String,String> choiceColumn = new TableColumn<String, String>("存档");
@@ -266,8 +271,6 @@ public class GameMenu extends FXGLMenu {
         choiceColumn.setCellValueFactory(cellData->{
             return new ReadOnlyStringWrapper(cellData.getValue());
         });
-//        choiceColumn.setStyle("-fx-alignment: center;-fx-font-size: 20;");
-//        choiceColumn.setStyle("-fx-text-fill: rgba(68,68,68,0.96)");
         tableView.getColumns().add(choiceColumn);
         File f = new File("./hulu_record_video");
         ObservableList<String> videoFiles = FXCollections.observableArrayList();
@@ -334,8 +337,8 @@ public class GameMenu extends FXGLMenu {
             Stage stage = new Stage();
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(stage);
-            System.out.println(file.getName());
-            if(file.exists()&&file.getName().endsWith("_hulu_recordVideo.zip")){
+//            System.out.println(file.getName());
+            if(file!=null&&file.exists()&&file.getName().endsWith("_hulu_recordVideo.zip")){
                 try {
                     int byteread = 0;
                     InputStream inStream = new FileInputStream(file.toString()); //读入原文件
@@ -353,7 +356,7 @@ public class GameMenu extends FXGLMenu {
                     e.printStackTrace();
                 }
             }
-            else if(!file.getName().endsWith("_hulu_recordVideo.zip")){
+            else if(file!=null&&!file.getName().endsWith("_hulu_recordVideo.zip")){
                 FXGL.getDialogService().showErrorBox("错误的文件命名或格式",()->{});
             }
         });

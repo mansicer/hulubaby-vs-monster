@@ -19,6 +19,7 @@ import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
 import com.almasb.fxgl.profile.DataFile;
 import com.almasb.fxgl.profile.SaveLoadHandler;
+import com.almasb.fxgl.texture.Texture;
 import com.almasb.fxgl.ui.MDIWindow;
 import components.*;
 import config.Config;
@@ -30,11 +31,13 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
@@ -46,6 +49,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import menu.GameMenu;
 import org.apache.commons.io.FileUtils;
@@ -54,6 +58,7 @@ import service.MultiplayerConnectionService;
 import service.SocketClient;
 import service.SocketService;
 import types.BasicEntityTypes;
+import types.CampType;
 import util.*;
 
 import javax.swing.*;
@@ -220,15 +225,15 @@ public class Main extends GameApplication {
         Properties props = LoadConfigUtils.getProps();
         String isserver = (String)props.getOrDefault("isServer","false");
         String isclient = (String)props.getOrDefault("isClient","false");
-        System.out.println(isserver);
-        System.out.println(isclient);
+//        System.out.println(isserver);
+//        System.out.println(isclient);
         boolean isServer = Boolean.parseBoolean(isserver);
         boolean isClient= Boolean.parseBoolean(isclient);
-        System.out.println(isServer);
-        System.out.println(isClient);
+//        System.out.println(isServer);
+//        System.out.println(isClient);
         FXGL.getWorldProperties().setValue("isServer",isServer);
         FXGL.getWorldProperties().setValue("isClient",isClient);
-        System.err.println(FXGL.getb("isServer"));
+//        System.err.println(FXGL.getb("isServer"));
         if (isServer) {
 //            try {
 //                new SocketService().serverConnect();
@@ -267,19 +272,33 @@ public class Main extends GameApplication {
             });
         }
         if (isServer) {
-            Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, 0);
+            boolean b = new Random().nextBoolean();
+            Entity entity = null;
             FXGL.spawn("Dawa", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
-            Entity enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
-            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() - 50);
-
+            Entity enemy = null;
+//            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() - 50);
+//            System.out.println(b);
+            if(b){
+                FXGL.set("campType", CampType.HuluBabyCamp);
+                FXGL.set("opponentCampType",CampType.MonsterCamp);
+                entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, 0);
+                enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
+            }
+            else{
+                FXGL.set("campType", CampType.MonsterCamp);
+                FXGL.set("opponentCampType",CampType.HuluBabyCamp);
+                enemy = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, 0);
+                entity = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
+            }
             PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
-
+            Entity finalEnemy = enemy;
             NetworkUtils.getServer().getConnections().forEach(connection ->  {
-                PropertyUtils.setOpponentPlayerID(EntityUtils.getNetworkID(enemy));
+                PropertyUtils.setOpponentPlayerID(EntityUtils.getNetworkID(finalEnemy));
                 Bundle message = new Bundle("PlayerAllocation");
-                message.put("playerID", EntityUtils.getNetworkID(enemy));
+                message.put("playerID", EntityUtils.getNetworkID(finalEnemy));
                 NetworkUtils.getMultiplayerService().sendMessage(connection, message);
             });
+
         }
     }
 
@@ -319,6 +338,9 @@ public class Main extends GameApplication {
             vars.put("client", Optional.empty());
         }
         vars.put("removeIDs",new ArrayList<Integer>());
+        vars.put("campType",CampType.HuluBabyCamp);
+        vars.put("opponentCampType",CampType.MonsterCamp);
+        vars.put("finished",false);
     }
 
     @Override
@@ -352,9 +374,90 @@ public class Main extends GameApplication {
         });
     }
 
+    private VBox show = null;
     @Override
     protected void onUpdate(double tpf) {
         checkCurrentPlayer();
+        if(GameUtils.detectGameOver()&&!FXGL.getb("finished")){
+//            System.err.println("finished");
+            FXGL.set("finished",true);
+            PropertyUtils.setCurrentPlayerID(-1);
+            boolean isWin = GameUtils.isWin();
+            FXGL.getGameScene().clearGameViews();
+            Texture win = new Texture(FXGL.image("win.png"));
+            Texture lose = new Texture(FXGL.image("lose.png"));
+
+            Rectangle rec = new Rectangle();
+            rec.setWidth(180);
+            rec.setHeight(40);
+            rec.setArcWidth(20);
+            rec.setArcHeight(20);
+
+            Button exit = FXGL.getUIFactoryService().newButton("退出");
+            exit.setMaxHeight(rec.getHeight());
+            exit.setMaxWidth(rec.getWidth());
+            exit.setShape(rec);
+            exit.setTextAlignment(TextAlignment.CENTER);
+            exit.setOnAction(actionEvent -> {
+                FXGL.getGameController().exit();
+            });
+            Button goToMenu = FXGL.getUIFactoryService().newButton("返回菜单");
+            goToMenu.setMaxHeight(rec.getHeight());
+            goToMenu.setMaxWidth(rec.getWidth());
+            goToMenu.setShape(rec);
+            goToMenu.setTextAlignment(TextAlignment.CENTER);
+            goToMenu.setOnAction(actionEvent -> {
+                FXGL.getGameScene().getRoot().getChildren().remove(show);
+                if(FXGL.getb("isServer")) {
+                    Server<Bundle> server = NetworkUtils.getServer();
+                    server.stop();
+                }
+                else{
+                    Client<Bundle> client = NetworkUtils.getClient();
+                    client.disconnect();
+                }
+//                FXGL.getGameController().resumeEngine();
+                FXGL.getWorldProperties().clear();
+                FXGL.getGameController().gotoMainMenu();
+            });
+            HBox choiceButton = new HBox(20,
+                    exit,
+                    goToMenu);
+
+            if(isWin) {
+                show = new VBox(25,
+                        win,
+                        choiceButton);
+                show.setTranslateX(FXGL.getAppWidth() / 3);
+                show.setTranslateY(FXGL.getAppHeight() / 4);
+                show.setAlignment(Pos.CENTER);
+
+                System.out.println("win");
+            }
+            else {
+                show = new VBox(25,
+                        lose,
+                        choiceButton);
+                show.setTranslateX(FXGL.getAppWidth() / 3);
+                show.setTranslateY(FXGL.getAppHeight() / 4);
+                show.setAlignment(Pos.CENTER);
+                System.out.println("lose");
+            }
+
+            if (detectRecord()) {
+                VBox finalShow = show;
+                FXGL.getDialogService().showConfirmationBox("检测到存档，是否要保存？", answer -> {
+                    if (answer) {
+                        GameUtils.recordUI();
+                    }
+                    FXGL.getGameScene().getRoot().getChildren().addAll(finalShow);
+                });
+            }
+            else{
+                FXGL.getGameScene().getRoot().getChildren().addAll(show);
+            }
+
+        }
         if(FXGL.getb("record")){
             String path = "./temp_record_hulubrother/";
             String time = Long.toString(System.currentTimeMillis());
@@ -371,7 +474,7 @@ public class Main extends GameApplication {
             }
         }
         if (NetworkUtils.isServer()) {
-            checkAI();
+//            checkAI();
         }
     }
 
@@ -403,7 +506,6 @@ public class Main extends GameApplication {
             geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
         }
     }
-
     protected void geneartePlayerIcon(Entity player) {
         int ICON_HEIGHT = 12, ICON_WIDTH = 10;
         var icon = new Polygon(0, 0, ICON_WIDTH, 0, ICON_WIDTH / 2, ICON_HEIGHT);
@@ -413,6 +515,17 @@ public class Main extends GameApplication {
         player.getViewComponent().addChild(icon);
         playerIcon = icon;
     }
+
+    protected boolean detectRecord(){
+        File f = new File("./temp_record_hulubrother");
+        if(f.exists()&&f.listFiles().length>0){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
     public static void main(String[] args) {
         launch(args);
     }

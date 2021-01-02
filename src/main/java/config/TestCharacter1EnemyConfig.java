@@ -20,7 +20,7 @@ public class TestCharacter1EnemyConfig {
 
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 25;
+    public static final int damage = 100;
 
     public static final AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, width, height, Duration.seconds(1), 1, 1);
     public static final AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, width, height, Duration.seconds(1), 0, 3);

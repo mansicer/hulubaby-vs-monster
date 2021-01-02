@@ -14,6 +14,7 @@ public class DawaConfig {
     public static final AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("DawaWalk.png"), 4, width, height, Duration.seconds(1), 0, 0);
     public static final AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("DawaWalk.png"), 4, width, height, Duration.seconds(1), 0, 3);
     public static final AnimationChannel animatedAttack = new AnimationChannel(FXGL.image("DawaAttack.png"), 4, width, height, Duration.seconds(1), 0, 3);
+    public static final AnimationChannel attackEffect = new AnimationChannel(FXGL.image("Attack.png"),4, 42, 24, Duration.seconds(1), 0, 5);
 
     public static final BasicEntityTypes basicEntityType = BasicEntityTypes.PLAYER;
     public static final DetailedEntityType detailedEntityType = DetailedEntityType.Dawa;
@@ -25,7 +26,7 @@ public class DawaConfig {
 
     public static final double attackAnimationTime = 0.3;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 20;
+    public static final int damage = 100;
     public static final int attackRangeWidth = 50;
     public static final int attackRangeHeight = 60;
 }

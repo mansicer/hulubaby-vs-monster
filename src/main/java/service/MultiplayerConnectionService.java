@@ -231,7 +231,7 @@ public class MultiplayerConnectionService extends EngineService {
                     var entities = FXGL.getGameWorld().getEntitiesInRange(range);
                     // TODO: choose the closest one
                     for (Entity entity : entities) {
-                        if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(CampType.MonsterCamp)) {
+                        if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(FXGL.geto("opponentCampType"))) {
                             int id = EntityUtils.getNetworkID(entity);
 
                             Bundle message = new Bundle("Reply: Choose Player");

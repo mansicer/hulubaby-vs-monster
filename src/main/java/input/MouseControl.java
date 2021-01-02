@@ -30,7 +30,7 @@ public class MouseControl {
 
                 // TODO: choose the closest one, add choose rules by CampType
                 for (Entity entity : entities) {
-                    if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(CampType.HuluBabyCamp)) {
+                    if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(FXGL.geto("campType"))) {
                         int id = EntityUtils.getNetworkID(entity);
                         PropertyUtils.setCurrentPlayerID(id);
                         break;
