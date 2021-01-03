@@ -44,26 +44,6 @@ public class MultiplayerConnectionService extends EngineService {
         });
     }
 
-    private void packUpComponentBundle(Bundle bundle, SerializableComponent component) {
-        Bundle temporaryBundle = new Bundle("temporaryBundle");
-        component.write(temporaryBundle);
-        temporaryBundle.getData().forEach((k, v) -> {
-            String newKey = component.getClass().getSimpleName() + "." + k;
-            bundle.put(newKey, v);
-        });
-    }
-
-    private void unpackComponentBundle(Bundle bundle, SerializableComponent component) {
-        String componentName = component.getClass().getSimpleName();
-        Bundle temporaryBundle = new Bundle("temporaryBundle");
-        bundle.getData().forEach((k, v) -> {
-            if (k.startsWith(componentName)) {
-                temporaryBundle.put(k.substring(componentName.length() + 1), v);
-            }
-        });
-        component.read(temporaryBundle);
-    }
-
     public void updateReplicatedEntities(Connection<Bundle> connection, AbstractMutableList<Entity> entities){
         var removeIDs = new ArrayList<Integer>();
         var removeBundle = new Bundle("ENTITY_REMOVALS_EVENT");
@@ -75,8 +55,8 @@ public class MultiplayerConnectionService extends EngineService {
 
             if(entity.isActive()) {
                 entity.getComponents().forEach(component -> {
-                    if (checkComponentUpdatable(component)) {
-                        packUpComponentBundle(updateBundle, (SerializableComponent) component);
+                    if (ComponentUtils.checkComponentUpdatable(component)) {
+                        ComponentUtils.packUpComponentBundle(updateBundle, (SerializableComponent) component);
                     }
                 });
                 updateBundle.put("position",new Vec2(entity.getPosition()));
@@ -139,8 +119,8 @@ public class MultiplayerConnectionService extends EngineService {
                     Vec2 position = bundle.get("position");
                     entity.setPosition(position);
                     entity.getComponents().forEach(component -> {
-                        if (checkComponentUpdatable(component)) {
-                            unpackComponentBundle(bundle, (SerializableComponent) component);
+                        if (ComponentUtils.checkComponentUpdatable(component)) {
+                            ComponentUtils.unpackComponentBundle(bundle, (SerializableComponent) component);
                         }
                     });
                 });
@@ -150,6 +130,8 @@ public class MultiplayerConnectionService extends EngineService {
                 removeIDs.forEach(id -> {
                     EntityUtils.getEntityByNetworkID(id).ifPresent(entity -> {
                         entity.removeFromWorld();
+                        ArrayList<Integer> removeID = FXGL.geto("removeIDs");
+                        removeID.add(EntityUtils.getNetworkID(entity));
                     });
                 });
             }
@@ -249,7 +231,7 @@ public class MultiplayerConnectionService extends EngineService {
                     var entities = FXGL.getGameWorld().getEntitiesInRange(range);
                     // TODO: choose the closest one
                     for (Entity entity : entities) {
-                        if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(CampType.MonsterCamp)) {
+                        if (entity.hasComponent(ControllableComponent.class) && EntityUtils.getCampType(entity).equals(FXGL.geto("opponentCampType"))) {
                             int id = EntityUtils.getNetworkID(entity);
 
                             Bundle message = new Bundle("Reply: Choose Player");
@@ -266,11 +248,5 @@ public class MultiplayerConnectionService extends EngineService {
                 }
             }
         });
-    }
-
-    private boolean checkComponentUpdatable(Component component) {
-        return component instanceof SerializableComponent &&
-                !(component instanceof BoundingBoxComponent)
-                ;
     }
 }

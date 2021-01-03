@@ -2,8 +2,11 @@ package components;
 
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
+import com.almasb.fxgl.texture.AnimatedTexture;
+import com.almasb.fxgl.texture.AnimationChannel;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import util.EntityUtils;
 
 import java.util.List;

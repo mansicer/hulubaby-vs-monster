@@ -8,10 +8,10 @@ import service.MultiplayerConnectionService;
 
 public class NetworkUtils {
     public static boolean isServer() {
-        return FXGL.getWorldProperties().getBoolean("isServer");
+        return FXGL.getb("isServer");
     }
     public static boolean isClient() {
-        return FXGL.getWorldProperties().getBoolean("isClient");
+        return FXGL.getb("isClient");
     }
     public static Server<Bundle> getServer() {
         return FXGL.getWorldProperties().getValue("server");

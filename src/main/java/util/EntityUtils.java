@@ -26,12 +26,15 @@ public class EntityUtils {
         }
         return ret;
     }
+
     public static int getNetworkID(Entity entity) {
         return entity.getComponent(NetworkIDComponent.class).getId();
     }
+
     public static CampType getCampType(Entity entity) {
         return entity.getComponent(DetailedTypeComponent.class).getCampType();
     }
+
     public static boolean isEnemy(Entity a, Entity b) {
         CampType aCamp = a.getComponent(DetailedTypeComponent.class).getCampType();
         CampType bCamp = b.getComponent(DetailedTypeComponent.class).getCampType();
