@@ -7,7 +7,10 @@ import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
-import components.*;
+import components.AIComponent;
+import components.BulletComponent;
+import components.ControllableComponent;
+import components.HealthComponent;
 import input.BehaviorControl;
 import input.DirectionControl;
 import input.GameControl;
@@ -19,7 +22,6 @@ import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 import service.MultiplayerConnectionService;
 import types.BasicEntityTypes;
-import util.ComponentUtils;
 import util.EntityUtils;
 import util.NetworkUtils;
 import util.PropertyUtils;
@@ -30,9 +32,9 @@ import java.util.Optional;
 
 public class Main extends GameApplication {
     private static final String GameTitle = "Hulubabies vs Monsters";
-    private static final int GameWidth = 800;
-    private static final int GameHeight = 600;
-    private static final String GameVersion = "0.2.1";
+    private static final int GameWidth = 1600;
+    private static final int GameHeight = 900;
+    private static final String GameVersion = "0.4.0";
     private static final int GameNetworkPort = 6657;
     private static final String GameServerIP = "localhost";
 
@@ -148,7 +150,9 @@ public class Main extends GameApplication {
         else if (currentPlayerID != playerID) {
             if (currentPlayerID >= 0) {
                 // remove icons
-                EntityUtils.getEntityByNetworkID(currentPlayerID).get().getViewComponent().removeChild(playerIcon);
+                EntityUtils.getEntityByNetworkID(currentPlayerID).ifPresent(entity -> {
+                    entity.getViewComponent().removeChild(playerIcon);
+                });
             }
             currentPlayerID = playerID;
             geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());

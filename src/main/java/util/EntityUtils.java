@@ -48,11 +48,12 @@ public class EntityUtils {
         return enemyEntities;
     }
     public static void registerEntityTimer(Duration time, int entityID, Consumer<Entity> func) {
-        Entity entity = getEntityByNetworkID(entityID).get();
-        FXGL.runOnce(() -> {
-            if (entity.isActive()) {
-                func.accept(entity);
-            }
-        }, time);
+        getEntityByNetworkID(entityID).ifPresent(e -> {
+            FXGL.runOnce(() -> {
+                if (e.isActive()) {
+                    func.accept(e);
+                }
+            }, time);
+        });
     }
 }

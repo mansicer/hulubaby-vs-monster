@@ -21,11 +21,11 @@ public class DawaConfig {
 
     public static final int speed = 250;
 
-    public static final int health = 200;
+    public static final int health = 400;
 
     public static final double attackAnimationTime = 0.3;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 20;
+    public static final int damage = 25;
     public static final int attackRangeWidth = 50;
     public static final int attackRangeHeight = 60;
 }
