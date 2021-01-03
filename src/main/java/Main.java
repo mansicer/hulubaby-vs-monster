@@ -415,7 +415,7 @@ public class Main extends GameApplication {
     @Override
     protected void onUpdate(double tpf) {
         checkCurrentPlayer();
-        if(GameUtils.detectGameOver()&&!FXGL.getb("finished")){
+        if(GameUtils.detectGameOver()&&!FXGL.getb("finished")&&(FXGL.getb("isServer") || FXGL.getb("isClient"))){
 //            System.err.println("finished");
             FXGL.set("finished",true);
             PropertyUtils.setCurrentPlayerID(-1);
@@ -513,63 +513,61 @@ public class Main extends GameApplication {
             if(now< files.length -1 && !FXGL.getb("pause")){
                 FXGL.set("now",now+1);
             }
-            else if(now == files.length -1){
-                FXGL.set("replay",false);
+            else if(now == files.length -1) {
+                FXGL.set("replay", false);
                 Input input = FXGL.getInput();
-                input.rebind(input.getActionByName("Pause Replay"),KeyCode.COLORED_KEY_0);
-                input.rebind(input.getActionByName("Record Game"),KeyCode.SPACE);
-                input.rebind(input.getActionByName("Back Replay"),KeyCode.COLORED_KEY_1);
-                input.rebind(input.getActionByName("Move Left"),KeyCode.LEFT);
-                input.rebind(input.getActionByName("Forward Replay"),KeyCode.COLORED_KEY_2);
-                input.rebind(input.getActionByName("Move Right"),KeyCode.RIGHT);
-                if(!GameUtils.detectGameOver()){
-                    Rectangle rec = new Rectangle();
-                    rec.setWidth(180);
-                    rec.setHeight(40);
-                    rec.setArcWidth(20);
-                    rec.setArcHeight(20);
-                    Texture end = new Texture(FXGL.image("end.png"));
-                    Button exit = FXGL.getUIFactoryService().newButton("退出游戏");
-                    exit.setMaxHeight(rec.getHeight());
-                    exit.setMaxWidth(rec.getWidth());
-                    exit.setShape(rec);
-                    exit.setTextAlignment(TextAlignment.CENTER);
-                    exit.setOnAction(actionEvent -> {
-                        File f = new File("./src/config.properties");
-                        if(f.exists()){
-                            f.delete();
-                        }
-                        FXGL.getGameController().exit();
-                    });
-                    Button goToMenu = FXGL.getUIFactoryService().newButton("返回菜单");
-                    goToMenu.setMaxHeight(rec.getHeight());
-                    goToMenu.setMaxWidth(rec.getWidth());
-                    goToMenu.setShape(rec);
-                    goToMenu.setTextAlignment(TextAlignment.CENTER);
-                    goToMenu.setOnAction(actionEvent -> {
-                        FXGL.getGameScene().getRoot().getChildren().remove(show);
-                        if(FXGL.getb("isServer")) {
-                            Server<Bundle> server = NetworkUtils.getServer();
-                            server.stop();
-                        }
-                        if(FXGL.getb("isClient")){
-                            Client<Bundle> client = NetworkUtils.getClient();
-                            client.disconnect();
-                        }
+                input.rebind(input.getActionByName("Pause Replay"), KeyCode.COLORED_KEY_0);
+                input.rebind(input.getActionByName("Record Game"), KeyCode.SPACE);
+                input.rebind(input.getActionByName("Back Replay"), KeyCode.COLORED_KEY_1);
+                input.rebind(input.getActionByName("Move Left"), KeyCode.LEFT);
+                input.rebind(input.getActionByName("Forward Replay"), KeyCode.COLORED_KEY_2);
+                input.rebind(input.getActionByName("Move Right"), KeyCode.RIGHT);
+                Rectangle rec = new Rectangle();
+                rec.setWidth(180);
+                rec.setHeight(40);
+                rec.setArcWidth(20);
+                rec.setArcHeight(20);
+                Texture end = new Texture(FXGL.image("end.png"));
+                Button exit = FXGL.getUIFactoryService().newButton("退出游戏");
+                exit.setMaxHeight(rec.getHeight());
+                exit.setMaxWidth(rec.getWidth());
+                exit.setShape(rec);
+                exit.setTextAlignment(TextAlignment.CENTER);
+                exit.setOnAction(actionEvent -> {
+                    File f = new File("./src/config.properties");
+                    if (f.exists()) {
+                        f.delete();
+                    }
+                    FXGL.getGameController().exit();
+                });
+                Button goToMenu = FXGL.getUIFactoryService().newButton("返回菜单");
+                goToMenu.setMaxHeight(rec.getHeight());
+                goToMenu.setMaxWidth(rec.getWidth());
+                goToMenu.setShape(rec);
+                goToMenu.setTextAlignment(TextAlignment.CENTER);
+                goToMenu.setOnAction(actionEvent -> {
+                    FXGL.getGameScene().getRoot().getChildren().remove(show);
+                    if (FXGL.getb("isServer")) {
+                        Server<Bundle> server = NetworkUtils.getServer();
+                        server.stop();
+                    }
+                    if (FXGL.getb("isClient")) {
+                        Client<Bundle> client = NetworkUtils.getClient();
+                        client.disconnect();
+                    }
 //                        FXGL.getWorldProperties().clear();
-                        FXGL.getGameController().gotoMainMenu();
-                    });
-                    HBox choiceButton = new HBox(20,
-                            exit,
-                            goToMenu);
-                    show = new VBox(25,
-                            end,
-                            choiceButton);
-                    show.setTranslateX(FXGL.getAppWidth() / 3);
-                    show.setTranslateY(FXGL.getAppHeight() / 4);
-                    show.setAlignment(Pos.CENTER);
-                    FXGL.getGameScene().getRoot().getChildren().addAll(show);
-                }
+                    FXGL.getGameController().gotoMainMenu();
+                });
+                HBox choiceButton = new HBox(20,
+                        exit,
+                        goToMenu);
+                show = new VBox(25,
+                        end,
+                        choiceButton);
+                show.setTranslateX(FXGL.getAppWidth() / 3);
+                show.setTranslateY(FXGL.getAppHeight() / 4);
+                show.setAlignment(Pos.CENTER);
+                FXGL.getGameScene().getRoot().getChildren().addAll(show);
 
             }
             double stop = (double) now / (double) (files.length - 1);
