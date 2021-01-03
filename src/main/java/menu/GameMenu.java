@@ -56,7 +56,12 @@ public class GameMenu extends FXGLMenu {
         menuButton startGame = new menuButton("开始游戏","创建房间等待对战玩家加入",this::startGame);
         menuButton joinGame = new menuButton("加入游戏","加入他人房间进行对战",this::joinGame);
         menuButton options = new menuButton("存档回放","选择存档并观看回放",this::replayGame);
-        menuButton quitGame = new menuButton("退出游戏","结束程序并返回桌面",()->fireExit());
+        menuButton quitGame = new menuButton("退出游戏","结束程序并返回桌面",()->{
+            File f = new File("src/config.properties");
+            if(f.exists()){
+                f.delete();
+            }
+            fireExit();});
 
         selectButton = new SimpleObjectProperty<>(startGame);
 
@@ -243,7 +248,7 @@ public class GameMenu extends FXGLMenu {
 
     private void replayGame() {
         Properties props = new Properties();
-        props.setProperty("record","true");
+        props.setProperty("replay","true");
         props.setProperty("isServer","false");
         props.setProperty("isClient","false");
         try {

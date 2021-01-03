@@ -5,6 +5,7 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.ui.MDIWindow;
 import components.DetailedTypeComponent;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -141,6 +142,6 @@ public class GameUtils {
         mdiWindow.setContentPane(pane);
         FXGL.getGameScene().getRoot().getStylesheets().add("style/textField.css");
         FXGL.getGameScene().getRoot().getChildren().add(mdiWindow);
-        FXGL.getGameController().pauseEngine();
+//        FXGL.getGameController().pauseEngine();
     }
 }

@@ -13,6 +13,8 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import com.almasb.fxgl.input.Input;
+import com.almasb.fxgl.input.Trigger;
+import com.almasb.fxgl.input.TriggerListener;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Server;
@@ -35,6 +37,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -46,6 +49,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -68,7 +72,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
+import java.util.regex.Pattern;
 
 
 public class Main extends GameApplication {
@@ -129,7 +133,7 @@ public class Main extends GameApplication {
                     if(name.equals("removeIDs")){
                         ArrayList<Integer> removeIDs = (ArrayList<Integer>) value;
                         for(int id:removeIDs){
-                            System.err.println(id);
+//                            System.err.println(id);
                             EntityUtils.getEntityByNetworkID(id).get().removeFromWorld();
                         }
                     }
@@ -146,7 +150,7 @@ public class Main extends GameApplication {
                         var ret = entities.findFirst();
                         if (ret.isEmpty()) {
                             String spawnName = bd.get("spawnName");
-                            System.out.println(spawnName);
+//                            System.out.println(spawnName);
                             Vec2 position = bd.get("position");
                             SpawnData spawnData = new SpawnData(position.x,position.y);
                             Bundle spawnBundle = bd.get("spawnData");
@@ -176,7 +180,7 @@ public class Main extends GameApplication {
             }
         });
     }
-
+    private processShow processShow;
     @Override
     protected void initUI() {
         HBox hBox = new HBox();
@@ -195,7 +199,12 @@ public class Main extends GameApplication {
         hBox.setLayoutX(20);
         hBox.setLayoutY(20);
         hBox.visibleProperty().bind(FXGL.getbp("record"));
+
         FXGL.addUINode(hBox);
+        processShow = new processShow(0);
+        processShow.setTranslateY(FXGL.getAppHeight()-33);
+        processShow.visibleProperty().bind(FXGL.getbp("replay"));
+        FXGL.addUINode(processShow);
     }
 
     @Override
@@ -206,8 +215,8 @@ public class Main extends GameApplication {
         gameSettings.setVersion(Config.GameVersion);
         gameSettings.addEngineService(MultiplayerConnectionService.class);
         gameSettings.setMainMenuEnabled(true);
-        gameSettings.setGameMenuEnabled(true);
-        gameSettings.setManualResizeEnabled(true);
+        gameSettings.setGameMenuEnabled(false);
+        gameSettings.setManualResizeEnabled(false);
         gameSettings.setEnabledMenuItems(EnumSet.of(MenuItem.EXTRA));
         gameSettings.setSceneFactory(new SceneFactory(){
             @NotNull
@@ -300,6 +309,28 @@ public class Main extends GameApplication {
             });
 
         }
+        FXGL.getbp("replay").addListener((observableValue, aBoolean, t1) -> {
+            if(observableValue.getValue()){
+                Input input = FXGL.getInput();
+                input.rebind(new GameControl.RecordGame(),KeyCode.SOFTKEY_0);
+                input.rebind(input.getActionByName("Move Left"),KeyCode.SOFTKEY_1);
+                input.rebind(input.getActionByName("Move Right"),KeyCode.SOFTKEY_2);
+                try {
+                    input.addAction(new GameControl.PauseReplay(), KeyCode.SPACE);
+                    input.addAction(new GameControl.BackReplay(),KeyCode.LEFT);
+                    input.addAction(new GameControl.ForwardReplay(),KeyCode.RIGHT);
+                }
+                catch (Exception e){
+                    input.rebind(input.getActionByName("Pause Replay"),KeyCode.SPACE);
+                    input.rebind(input.getActionByName("Back Replay"),KeyCode.LEFT);
+                    input.rebind(input.getActionByName("Forward Replay"),KeyCode.RIGHT);
+                }
+            }
+        });
+        if(FXGL.getb("replay")){
+            FXGL.set("replay",false);
+            FXGL.set("replay",true);
+        }
     }
 
 //    private VBox vBox;
@@ -320,13 +351,14 @@ public class Main extends GameApplication {
 
     @Override
     protected void initGameVars(Map<String, Object> vars) {
+        System.err.println("vars");
         vars.put("isServer", false);
         vars.put("isClient", false);
         vars.put("CurrentPlayerID", -1);
         vars.put("OpponentPlayerID", -1);
         vars.put("record",false);
         Properties props = LoadConfigUtils.getProps();
-        boolean replay = Boolean.parseBoolean((String) props.getOrDefault("record","false"));
+        boolean replay = Boolean.parseBoolean((String) props.getOrDefault("replay","false"));
         vars.put("replay",replay);
         File f = new File("./temp_replay_hulubrother");
         if(!f.exists())
@@ -341,11 +373,13 @@ public class Main extends GameApplication {
         vars.put("campType",CampType.HuluBabyCamp);
         vars.put("opponentCampType",CampType.MonsterCamp);
         vars.put("finished",false);
+        vars.put("pause",false);
     }
 
     @Override
     protected void initInput() {
         Input input = FXGL.getInput();
+
         input.addAction(new DirectionControl.MoveUp(), KeyCode.UP);
         input.addAction(new DirectionControl.MoveDown(), KeyCode.DOWN);
         input.addAction(new DirectionControl.MoveLeft(), KeyCode.LEFT);
@@ -375,6 +409,7 @@ public class Main extends GameApplication {
     }
 
     private VBox show = null;
+
     @Override
     protected void onUpdate(double tpf) {
         checkCurrentPlayer();
@@ -399,6 +434,10 @@ public class Main extends GameApplication {
             exit.setShape(rec);
             exit.setTextAlignment(TextAlignment.CENTER);
             exit.setOnAction(actionEvent -> {
+                File f = new File("./src/config.properties");
+                if(f.exists()){
+                    f.delete();
+                }
                 FXGL.getGameController().exit();
             });
             Button goToMenu = FXGL.getUIFactoryService().newButton("返回菜单");
@@ -412,12 +451,12 @@ public class Main extends GameApplication {
                     Server<Bundle> server = NetworkUtils.getServer();
                     server.stop();
                 }
-                else{
+                if(FXGL.getb("isClient")){
                     Client<Bundle> client = NetworkUtils.getClient();
                     client.disconnect();
                 }
 //                FXGL.getGameController().resumeEngine();
-                FXGL.getWorldProperties().clear();
+//                FXGL.getWorldProperties().clear();
                 FXGL.getGameController().gotoMainMenu();
             });
             HBox choiceButton = new HBox(20,
@@ -431,7 +470,6 @@ public class Main extends GameApplication {
                 show.setTranslateX(FXGL.getAppWidth() / 3);
                 show.setTranslateY(FXGL.getAppHeight() / 4);
                 show.setAlignment(Pos.CENTER);
-
                 System.out.println("win");
             }
             else {
@@ -450,6 +488,7 @@ public class Main extends GameApplication {
                     if (answer) {
                         GameUtils.recordUI();
                     }
+                    finalShow.setViewOrder(1);
                     FXGL.getGameScene().getRoot().getChildren().addAll(finalShow);
                 });
             }
@@ -469,9 +508,70 @@ public class Main extends GameApplication {
             File[] files = FXGL.geto("files");
             int now = FXGL.geti("now");
             FXGL.getSaveLoadService().readAndLoadTask(files[now].toString().split("\\\\",2)[1]).run();
-            if(now< files.length -1){
+            if(now< files.length -1 && !FXGL.getb("pause")){
                 FXGL.set("now",now+1);
             }
+            else if(now == files.length -1){
+                FXGL.set("replay",false);
+                Input input = FXGL.getInput();
+                input.rebind(input.getActionByName("Pause Replay"),KeyCode.COLORED_KEY_0);
+                input.rebind(input.getActionByName("Record Game"),KeyCode.SPACE);
+                input.rebind(input.getActionByName("Back Replay"),KeyCode.COLORED_KEY_1);
+                input.rebind(input.getActionByName("Move Left"),KeyCode.LEFT);
+                input.rebind(input.getActionByName("Forward Replay"),KeyCode.COLORED_KEY_2);
+                input.rebind(input.getActionByName("Move Right"),KeyCode.RIGHT);
+                if(!GameUtils.detectGameOver()){
+                    Rectangle rec = new Rectangle();
+                    rec.setWidth(180);
+                    rec.setHeight(40);
+                    rec.setArcWidth(20);
+                    rec.setArcHeight(20);
+                    Texture end = new Texture(FXGL.image("end.png"));
+                    Button exit = FXGL.getUIFactoryService().newButton("退出游戏");
+                    exit.setMaxHeight(rec.getHeight());
+                    exit.setMaxWidth(rec.getWidth());
+                    exit.setShape(rec);
+                    exit.setTextAlignment(TextAlignment.CENTER);
+                    exit.setOnAction(actionEvent -> {
+                        File f = new File("./src/config.properties");
+                        if(f.exists()){
+                            f.delete();
+                        }
+                        FXGL.getGameController().exit();
+                    });
+                    Button goToMenu = FXGL.getUIFactoryService().newButton("返回菜单");
+                    goToMenu.setMaxHeight(rec.getHeight());
+                    goToMenu.setMaxWidth(rec.getWidth());
+                    goToMenu.setShape(rec);
+                    goToMenu.setTextAlignment(TextAlignment.CENTER);
+                    goToMenu.setOnAction(actionEvent -> {
+                        FXGL.getGameScene().getRoot().getChildren().remove(show);
+                        if(FXGL.getb("isServer")) {
+                            Server<Bundle> server = NetworkUtils.getServer();
+                            server.stop();
+                        }
+                        if(FXGL.getb("isClient")){
+                            Client<Bundle> client = NetworkUtils.getClient();
+                            client.disconnect();
+                        }
+//                        FXGL.getWorldProperties().clear();
+                        FXGL.getGameController().gotoMainMenu();
+                    });
+                    HBox choiceButton = new HBox(20,
+                            exit,
+                            goToMenu);
+                    show = new VBox(25,
+                            end,
+                            choiceButton);
+                    show.setTranslateX(FXGL.getAppWidth() / 3);
+                    show.setTranslateY(FXGL.getAppHeight() / 4);
+                    show.setAlignment(Pos.CENTER);
+                    FXGL.getGameScene().getRoot().getChildren().addAll(show);
+                }
+
+            }
+            double stop = (double) now / (double) (files.length - 1);
+            processShow.setStop(stop);
         }
         if (NetworkUtils.isServer()) {
 //            checkAI();
@@ -499,13 +599,13 @@ public class Main extends GameApplication {
         }
         else if (currentPlayerID != playerID) {
             if (currentPlayerID >= 0) {
-                // remove icons
                 EntityUtils.getEntityByNetworkID(currentPlayerID).get().getViewComponent().removeChild(playerIcon);
             }
             currentPlayerID = playerID;
             geneartePlayerIcon(EntityUtils.getEntityByNetworkID(playerID).get());
         }
     }
+
     protected void geneartePlayerIcon(Entity player) {
         int ICON_HEIGHT = 12, ICON_WIDTH = 10;
         var icon = new Polygon(0, 0, ICON_WIDTH, 0, ICON_WIDTH / 2, ICON_HEIGHT);
@@ -518,7 +618,7 @@ public class Main extends GameApplication {
 
     protected boolean detectRecord(){
         File f = new File("./temp_record_hulubrother");
-        if(f.exists()&&f.listFiles().length>0){
+        if(f.exists()&&f.listFiles().length>0&&!FXGL.getb("replay")){
             return true;
         }
         else{
@@ -526,6 +626,32 @@ public class Main extends GameApplication {
         }
     }
 
+    private static class processShow extends Parent {
+        private Rectangle rectangle;
+        private Rectangle leftProcess;
+        private Rectangle rightProcess;
+        private HBox lines;
+        private VBox processBar;
+        public processShow(double stop){
+            rectangle = new Rectangle(FXGL.getAppWidth(),30);
+            rectangle.setFill(Color.GRAY);
+            rectangle.setOpacity(0.4);
+//            leftProcess = new Line(0,3,FXGL.getAppWidth()*stop,3);
+            leftProcess = new Rectangle(FXGL.getAppWidth()*stop,3);
+            leftProcess.setFill(Color.CYAN);
+//            rightProcess = new Line(0,3,FXGL.getAppWidth()-FXGL.getAppWidth()*stop,3);
+            rightProcess = new Rectangle(FXGL.getAppWidth()*(1-stop),3);
+            rightProcess.setFill(Color.GRAY);
+            lines = new HBox(leftProcess,rightProcess);
+            processBar = new VBox(lines);
+            getChildren().addAll(processBar);
+        }
+
+        public void setStop(double stop){
+            leftProcess.setWidth(FXGL.getAppWidth()*stop);
+            rightProcess.setWidth(FXGL.getAppWidth()*(1-stop));
+        }
+    }
     public static void main(String[] args) {
         launch(args);
     }

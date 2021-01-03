@@ -56,7 +56,9 @@ public class GameControl {
 
         @Override
         protected void onActionBegin() {
-            FXGL.set("record",!FXGL.getb("record"));
+            if(!FXGL.getb("replay")) {
+                FXGL.set("record", !FXGL.getb("record"));
+            }
         }
     }
 
@@ -72,5 +74,55 @@ public class GameControl {
         }
     }
 
+    public static class PauseReplay extends UserAction{
 
+        public PauseReplay() {
+            super("Pause Replay");
+        }
+
+        @Override
+        protected void onActionBegin() {
+            FXGL.set("pause",!FXGL.getb("pause"));
+        }
+    }
+
+    public static class BackReplay extends UserAction{
+
+        public BackReplay() {
+            super("Back Replay");
+        }
+
+        @Override
+        protected void onActionBegin() {
+            if(FXGL.geti("now")-125>=0) {
+                FXGL.set("now", FXGL.geti("now")-125);
+            }
+            else{
+                FXGL.set("now",0);
+            }
+        }
+    }
+
+    public static class ForwardReplay extends UserAction{
+
+        public ForwardReplay() {
+            super("Forward Replay");
+        }
+
+        @Override
+        protected void onActionBegin() {
+            File f = new File("./temp_replay_hulubrother");
+            File[] files = f.listFiles();
+            int now = FXGL.geti("now");
+            if(now+125< files.length-1) {
+                for(int i=now;i<now+125;i++){
+                    FXGL.getSaveLoadService().readAndLoadTask(files[i].toString().split("\\\\",2)[1]).run();
+                }
+                FXGL.set("now", FXGL.geti("now")+125);
+            }
+            else{
+                FXGL.set("now",files.length-1);
+            }
+        }
+    }
 }
