@@ -180,7 +180,9 @@ public class Main extends GameApplication {
             }
         });
     }
+
     private processShow processShow;
+
     @Override
     protected void initUI() {
         HBox hBox = new HBox();

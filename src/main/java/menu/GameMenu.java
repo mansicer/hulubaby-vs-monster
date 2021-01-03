@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 
 public class GameMenu extends FXGLMenu {
     private ObjectProperty<menuButton> selectButton;
+
     public GameMenu() {
         super(MenuType.MAIN_MENU);
 
@@ -215,6 +216,7 @@ public class GameMenu extends FXGLMenu {
         }
 
     }
+
     private void startGame(){
 //        System.out.println("fire before");
 
@@ -279,14 +281,18 @@ public class GameMenu extends FXGLMenu {
         tableView.getColumns().add(choiceColumn);
         File f = new File("./hulu_record_video");
         ObservableList<String> videoFiles = FXCollections.observableArrayList();
-        File[] files =  f.listFiles();
-        String pattern = "hulu_record_video\\\\(.*?)_hulu_recordVideo\\.zip";
-        for (int i = 0; i < files.length; i++) {
-            Matcher matcher = Pattern.compile(pattern).matcher(files[i].toString());
-            if(matcher.find()){
-                videoFiles.add(matcher.group(1));
-//                System.out.println(matcher.group(1));
+        if(f.exists()) {
+            File[] files = f.listFiles();
+            String pattern = "hulu_record_video\\\\(.*?)_hulu_recordVideo\\.zip";
+            for (int i = 0; i < files.length; i++) {
+                Matcher matcher = Pattern.compile(pattern).matcher(files[i].toString());
+                if (matcher.find()) {
+                    videoFiles.add(matcher.group(1));
+                }
             }
+        }
+        else{
+            f.mkdir();
         }
         tableView.setItems(videoFiles);
         tableView.setMaxHeight(mdiWindow.getPrefHeight()*4/5);
@@ -306,8 +312,11 @@ public class GameMenu extends FXGLMenu {
         tableView.getSelectionModel().select(0,choiceColumn);
         isLoad.setOnAction(actionEvent -> {
             String selectedItem = (String) tableView.getSelectionModel().getSelectedItem();
-            ZipUtils.unzip("./hulu_record_video/"+selectedItem+"_hulu_recordVideo.zip","./temp_replay_hulubrother");
-            fireNewGame();
+            if(selectedItem!=null) {
+                System.out.println(selectedItem);
+                ZipUtils.unzip("./hulu_record_video/" + selectedItem + "_hulu_recordVideo.zip", "./temp_replay_hulubrother");
+                fireNewGame();
+            }
         });
 
         Button cancel = FXGL.getUIFactoryService().newButton("关闭");
@@ -326,11 +335,13 @@ public class GameMenu extends FXGLMenu {
         remove.setTextAlignment(TextAlignment.CENTER);
         remove.setOnAction(actionEvent -> {
             String selectedItem = (String) tableView.getSelectionModel().getSelectedItem();
-            File file = new File("./hulu_record_video/"+selectedItem+"_hulu_recordVideo.zip");
-            if(file.exists()){
-                file.delete();
+            if(selectedItem!=null) {
+                File file = new File("./hulu_record_video/" + selectedItem + "_hulu_recordVideo.zip");
+                if (file.exists()) {
+                    file.delete();
+                }
+                videoFiles.remove(selectedItem);
             }
-            videoFiles.remove(selectedItem);
         });
 
         Button recordAdd = FXGL.getUIFactoryService().newButton("导入");
@@ -386,6 +397,5 @@ public class GameMenu extends FXGLMenu {
                 null,null,new BackgroundPosition(null,0.1,true,null,0,true), null)));
         mdiWindow.setContentPane(pane);
         getContentRoot().getChildren().add(mdiWindow);
-//        ZipUtils.unzip("./test.zip","./temp_replay_hulubrother");
     }
 }
