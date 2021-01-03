@@ -1,11 +1,8 @@
-import com.almasb.fxgl.animation.AnimatedValue;
-import com.almasb.fxgl.animation.Interpolators;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.app.MenuItem;
 import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.SceneFactory;
-import com.almasb.fxgl.core.collection.PropertyChangeListener;
 import com.almasb.fxgl.core.math.Vec2;
 import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
@@ -13,50 +10,34 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.component.SerializableComponent;
 import com.almasb.fxgl.input.Input;
-import com.almasb.fxgl.input.Trigger;
-import com.almasb.fxgl.input.TriggerListener;
-import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.net.Client;
 import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.CollisionHandler;
 import com.almasb.fxgl.profile.DataFile;
 import com.almasb.fxgl.profile.SaveLoadHandler;
 import com.almasb.fxgl.texture.Texture;
-import com.almasb.fxgl.ui.MDIWindow;
 import components.*;
 import config.Config;
 import input.BehaviorControl;
 import input.DirectionControl;
 import input.GameControl;
 import input.MouseControl;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.FXCollections;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import menu.GameMenu;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import service.MultiplayerConnectionService;
 import service.SocketClient;
@@ -65,14 +46,10 @@ import types.BasicEntityTypes;
 import types.CampType;
 import util.*;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 
 public class Main extends GameApplication {
@@ -246,22 +223,22 @@ public class Main extends GameApplication {
         FXGL.getWorldProperties().setValue("isClient",isClient);
 //        System.err.println(FXGL.getb("isServer"));
         if (isServer) {
-//            try {
-//                new SocketService().serverConnect();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                new SocketService().serverConnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
-//            try {
-//                TimeUnit.SECONDS.sleep(2);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         if (isClient) {
             try {
@@ -287,19 +264,51 @@ public class Main extends GameApplication {
             Entity entity = null;
             FXGL.spawn("Dawa", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
             Entity enemy = null;
-//            FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() - 50);
-//            System.out.println(b);
-            if(b){
+            if (b) {
                 FXGL.set("campType", CampType.HuluBabyCamp);
                 FXGL.set("opponentCampType",CampType.MonsterCamp);
-                entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, 0);
-                enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
+
+                entity = FXGL.spawn("Dawa", 0, 10);
+                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
+                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
+                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
+                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
+                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
+                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
+
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
+
+                enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
             }
             else{
                 FXGL.set("campType", CampType.MonsterCamp);
                 FXGL.set("opponentCampType",CampType.HuluBabyCamp);
-                enemy = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, 0);
-                entity = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
+
+                enemy = FXGL.spawn("Dawa", 0, 10);
+                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
+                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
+                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
+                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
+                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
+                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
+
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
+
+                entity = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
             }
             PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
             Entity finalEnemy = enemy;
@@ -573,27 +582,6 @@ public class Main extends GameApplication {
             double stop = (double) now / (double) (files.length - 1);
             processShow.setStop(stop);
         }
-        if (NetworkUtils.isServer()) {
-//            checkAI();
-        }
-    }
-
-    protected void checkAI() {
-        List<Entity> controllableEntites = FXGL.getGameWorld().getEntitiesByComponent(ControllableComponent.class);
-        for (Entity entity : controllableEntites) {
-            int id = EntityUtils.getNetworkID(entity);
-            if (id != PropertyUtils.getCurrentPlayerID() && id != PropertyUtils.getOpponentPlayerID()) {
-                entity.getComponent(AIComponent.class).setAIActive(true);
-            }
-            else {
-                entity.getComponent(AIComponent.class).setAIActive(false);
-            }
-        }
-    }
-
-    @Override
-    protected void onUpdate(double tpf) {
-        checkCurrentPlayer();
         if (NetworkUtils.isServer()) {
             checkAI();
         }

@@ -16,6 +16,16 @@ public class PlayerAnimatedComponent extends Component {
     private MovableComponent movableComponent;
     private AttackComponent attackComponent;
 
+    public PlayerAnimatedComponent(AnimationChannel animatedIdle, AnimationChannel animatedWalk, AnimationChannel animatedAttack) {
+        this.animatedIdle = animatedIdle;
+        this.animatedWalk = animatedWalk;
+        this.animatedAttack = animatedAttack;
+        this.attackEffect = null;
+
+        texture = new AnimatedTexture(animatedIdle);
+        attackAnimation = null;
+    }
+
     public PlayerAnimatedComponent(AnimationChannel animatedIdle, AnimationChannel animatedWalk, AnimationChannel animatedAttack, AnimationChannel attackEffect) {
         this.animatedIdle = animatedIdle;
         this.animatedWalk = animatedWalk;
@@ -36,8 +46,8 @@ public class PlayerAnimatedComponent extends Component {
         entity.getTransformComponent().setScaleOrigin(new Point2D(entity.getWidth()/2, entity.getHeight()/2));
         entity.getViewComponent().addChild(texture);
         if(attackAnimation!=null) {
-            attackAnimation.setX(DawaConfig.attackRangeWidth * 1.5);
-            attackAnimation.setY(DawaConfig.attackRangeHeight / 2);
+            attackAnimation.setX(entity.getWidth());
+            attackAnimation.setY(entity.getHeight()/2);
             entity.getViewComponent().addChild(attackAnimation);
         }
         movableComponent = ComponentUtils.getMovableComponent(entity).get();

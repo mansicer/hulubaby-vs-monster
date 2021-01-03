@@ -3,6 +3,7 @@ package util;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.ui.MDIWindow;
+import components.ControllableComponent;
 import components.DetailedTypeComponent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -18,25 +19,25 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GameUtils {
     public static boolean detectGameOver(){
         boolean isEnd=true;
-        ArrayList<Entity> entities = FXGL.getGameWorld().getEntities();
+        List<Entity> entities = FXGL.getGameWorld().getEntitiesByComponent(ControllableComponent.class);
         AtomicReference<Entity> last = new AtomicReference<>(null);
         if(entities.size()==0){
             return false;
         }
         for (int i = 0; i < entities.size(); i++) {
-            if(entities.get(i).isActive()){
+            if (entities.get(i).isActive()){
                 if(last.get() == null){
                     last.set(entities.get(i));
                 }
                 else{
                     boolean b = last.get().getComponent(DetailedTypeComponent.class).getCampType() == entities.get(i).getComponent(DetailedTypeComponent.class).getCampType();
-//                    System.out.println(b);
                     isEnd &= b;
                     last.set(entities.get(i));
                 }

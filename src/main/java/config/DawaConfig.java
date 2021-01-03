@@ -8,6 +8,8 @@ import types.CampType;
 import types.DetailedEntityType;
 
 public class DawaConfig {
+    public static final String name = "Dawa";
+
     public static final int width = 60;
     public static final int height = 60;
 

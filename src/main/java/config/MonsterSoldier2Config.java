@@ -8,6 +8,8 @@ import types.CampType;
 import types.DetailedEntityType;
 
 public class MonsterSoldier2Config {
+    public static final String name = "MonsterSoldier2";
+
     public static final int width = 50;
     public static final int height = 50;
 

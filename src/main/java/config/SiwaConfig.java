@@ -8,6 +8,8 @@ import types.CampType;
 import types.DetailedEntityType;
 
 public class SiwaConfig {
+    public static final String name = "Siwa";
+
     public static final int width = 50;
     public static final int height = 60;
 

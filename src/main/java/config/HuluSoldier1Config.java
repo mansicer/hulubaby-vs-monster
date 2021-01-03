@@ -8,6 +8,8 @@ import types.CampType;
 import types.DetailedEntityType;
 
 public class HuluSoldier1Config {
+    public static final String name = "HuluSoldier1";
+
     public static final int width = 45;
     public static final int height = 60;
 

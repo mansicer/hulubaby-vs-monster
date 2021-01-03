@@ -4,23 +4,10 @@ import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.UserAction;
-import com.almasb.fxgl.ui.MDIWindow;
-import components.NetworkIDComponent;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 import util.EntityUtils;
 import util.GameUtils;
 import util.NetworkUtils;
-import util.ZipUtils;
+import util.PropertyUtils;
 
 import java.io.File;
 
@@ -55,17 +42,10 @@ public class GameControl {
 
                 PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
 
-                NetworkUtils.getServer().getConnections().forEach(connection ->  {
+                NetworkUtils.getServer().getConnections().forEach(connection -> {
                     PropertyUtils.setOpponentPlayerID(EntityUtils.getNetworkID(enemy));
                     Bundle message = new Bundle("PlayerAllocation");
                     message.put("playerID", EntityUtils.getNetworkID(enemy));
-                    NetworkUtils.getMultiplayerService().sendMessage(connection, message);
-
-                FXGL.getWorldProperties().setValue("CurrentPlayerID", entity.getComponent(NetworkIDComponent.class).getId());
-
-                Bundle message = new Bundle("PlayerAllocation");
-                message.put("playerID", EntityUtils.getNetworkID(enemy));
-                NetworkUtils.getServer().getConnections().forEach(connection ->  {
                     NetworkUtils.getMultiplayerService().sendMessage(connection, message);
                 });
             }

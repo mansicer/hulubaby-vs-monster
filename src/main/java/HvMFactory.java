@@ -8,6 +8,7 @@ import com.almasb.fxgl.net.Server;
 import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
 import components.*;
+import config.*;
 import config.DawaConfig;
 import config.TestCharacter1Config;
 import config.TestCharacter1EnemyConfig;
@@ -25,30 +26,46 @@ public class HvMFactory implements EntityFactory {
         }
     }
 
-    @Spawns("Dawa")
+    private SpawnDataComponent createSpawnData(SpawnData data) {
+        Bundle bd = new Bundle("");
+        data.getData().forEach((s, o) -> {
+            if(o instanceof Serializable){
+                bd.put(s, (Serializable) o);
+            }
+        });
+        SpawnDataComponent spawnDataComponent = new SpawnDataComponent();
+        spawnDataComponent.read(bd);
+        return spawnDataComponent;
+    }
+
+    @Spawns(DawaConfig.name)
     public Entity newDawa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
         var entity = FXGL.entityBuilder(data)
                 .type(DawaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(DawaConfig.name))
                 .with(new DetailedTypeComponent(DawaConfig.detailedEntityType, DawaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(DawaConfig.width, DawaConfig.height)))
                 .with(new ControllableComponent(DawaConfig.speed))
                 .with(new MeleeAttackComponent(DawaConfig.attackAnimationTime, DawaConfig.attackBackSwingTime, DawaConfig.damage, DawaConfig.attackRangeWidth, DawaConfig.attackRangeHeight))
                 .with(new HealthComponent(DawaConfig.health))
                 .with(new AIComponent())
-                .with(new PlayerAnimatedComponent(DawaConfig.animatedIdle, DawaConfig.animatedWalk, DawaConfig.animatedAttack))
+                .with(new PlayerAnimatedComponent(DawaConfig.animatedIdle, DawaConfig.animatedWalk, DawaConfig.animatedAttack, DawaConfig.attackEffect))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Dawa");
+        broadcastSpawnEvent(entity, data, DawaConfig.name);
         return entity;
     }
 
-    @Spawns("Erwa")
+    @Spawns(ErwaConfig.name)
     public Entity newErwa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(ErwaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(ErwaConfig.name))
                 .with(new DetailedTypeComponent(ErwaConfig.detailedEntityType, ErwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(ErwaConfig.width, ErwaConfig.height)))
                 .with(new ControllableComponent(ErwaConfig.speed))
@@ -56,39 +73,45 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(ErwaConfig.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(ErwaConfig.animatedIdle, ErwaConfig.animatedWalk, ErwaConfig.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Erwa");
+        broadcastSpawnEvent(entity, data, ErwaConfig.name);
         return entity;
     }
 
-    @Spawns("ErwaBullet")
+    @Spawns(ErwaConfig.bullet.name)
     public Entity newErwaBullet(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
                 .type(ErwaConfig.bullet.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(ErwaConfig.bullet.name))
                 .with(new DetailedTypeComponent(ErwaConfig.bullet.detailedEntityType, ErwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(ErwaConfig.bullet.width, ErwaConfig.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
                 .with(new BulletComponent(damage, sourceID, ErwaConfig.bullet.distance))
                 .with(new ItemAnimatedComponent(ErwaConfig.bullet.animatedIdle))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "ErwaBullet");
+        broadcastSpawnEvent(entity, data, ErwaConfig.bullet.name);
         return entity;
     }
 
-    @Spawns("Sanwa")
+    @Spawns(SanwaConfig.name)
     public Entity newSanwa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(SanwaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(SanwaConfig.name))
                 .with(new DetailedTypeComponent(SanwaConfig.detailedEntityType, SanwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(SanwaConfig.width, SanwaConfig.height)))
                 .with(new ControllableComponent(SanwaConfig.speed))
@@ -96,18 +119,21 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(SanwaConfig.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(SanwaConfig.animatedIdle, SanwaConfig.animatedWalk, SanwaConfig.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Sanwa");
+        broadcastSpawnEvent(entity, data, SanwaConfig.name);
         return entity;
     }
 
-    @Spawns("Siwa")
+    @Spawns(SiwaConfig.name)
     public Entity newSiwa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(SiwaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(SiwaConfig.name))
                 .with(new DetailedTypeComponent(SiwaConfig.detailedEntityType, SiwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(SiwaConfig.width, SiwaConfig.height)))
                 .with(new ControllableComponent(SiwaConfig.speed))
@@ -115,40 +141,46 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(SiwaConfig.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(SiwaConfig.animatedIdle, SiwaConfig.animatedWalk, SiwaConfig.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Siwa");
+        broadcastSpawnEvent(entity, data, SiwaConfig.name);
         return entity;
     }
 
-    @Spawns("SiwaBullet")
+    @Spawns(SiwaConfig.bullet.name)
     public Entity newSiwaBullet(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
                 .type(SiwaConfig.bullet.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(SiwaConfig.bullet.name))
                 .with(new DetailedTypeComponent(SiwaConfig.bullet.detailedEntityType, SiwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(SiwaConfig.bullet.width, SiwaConfig.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
                 .with(new BulletComponent(damage, sourceID, SiwaConfig.bullet.distance))
                 .with(new ItemAnimatedComponent(SiwaConfig.bullet.animatedIdle))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "SiwaBullet");
+        broadcastSpawnEvent(entity, data, SiwaConfig.bullet.name);
         return entity;
     }
 
 
-    @Spawns("Wuwa")
+    @Spawns(WuwaConfig.name)
     public Entity newWuwa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(WuwaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(WuwaConfig.name))
                 .with(new DetailedTypeComponent(WuwaConfig.detailedEntityType, WuwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(WuwaConfig.width, WuwaConfig.height)))
                 .with(new ControllableComponent(WuwaConfig.speed))
@@ -156,39 +188,45 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(WuwaConfig.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(WuwaConfig.animatedIdle, WuwaConfig.animatedWalk, WuwaConfig.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Wuwa");
+        broadcastSpawnEvent(entity, data, WuwaConfig.name);
         return entity;
     }
 
-    @Spawns("WuwaBullet")
+    @Spawns(WuwaConfig.bullet.name)
     public Entity newWuwaBullet(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
                 .type(WuwaConfig.bullet.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(WuwaConfig.bullet.name))
                 .with(new DetailedTypeComponent(WuwaConfig.bullet.detailedEntityType, WuwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(WuwaConfig.bullet.width, WuwaConfig.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
                 .with(new BulletComponent(damage, sourceID, WuwaConfig.bullet.distance))
                 .with(new ItemAnimatedComponent(WuwaConfig.bullet.animatedIdle))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "WuwaBullet");
+        broadcastSpawnEvent(entity, data, WuwaConfig.bullet.name);
         return entity;
     }
 
-    @Spawns("Liuwa")
+    @Spawns(LiuwaConfig.name)
     public Entity newLiuwa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(LiuwaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(LiuwaConfig.name))
                 .with(new DetailedTypeComponent(LiuwaConfig.detailedEntityType, LiuwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(LiuwaConfig.width, LiuwaConfig.height)))
                 .with(new ControllableComponent(LiuwaConfig.speed))
@@ -196,18 +234,21 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(LiuwaConfig.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(LiuwaConfig.animatedIdle, LiuwaConfig.animatedWalk, LiuwaConfig.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Liuwa");
+        broadcastSpawnEvent(entity, data, LiuwaConfig.name);
         return entity;
     }
 
-    @Spawns("Qiwa")
+    @Spawns(QiwaConfig.name)
     public Entity newQiwa(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(QiwaConfig.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(QiwaConfig.name))
                 .with(new DetailedTypeComponent(QiwaConfig.detailedEntityType, QiwaConfig.campType))
                 .bbox(new HitBox(BoundingShape.box(QiwaConfig.width, QiwaConfig.height)))
                 .with(new ControllableComponent(QiwaConfig.speed))
@@ -215,18 +256,21 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(QiwaConfig.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(QiwaConfig.animatedIdle, QiwaConfig.animatedWalk, QiwaConfig.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Qiwa");
+        broadcastSpawnEvent(entity, data, QiwaConfig.name);
         return entity;
     }
 
-    @Spawns("Snake1")
+    @Spawns(Snake1Config.name)
     public Entity newSnake1(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(Snake1Config.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(Snake1Config.name))
                 .with(new DetailedTypeComponent(Snake1Config.detailedEntityType, Snake1Config.campType))
                 .bbox(new HitBox(BoundingShape.box(Snake1Config.width, Snake1Config.height)))
                 .with(new ControllableComponent(Snake1Config.speed))
@@ -234,18 +278,21 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(Snake1Config.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(Snake1Config.animatedIdle, Snake1Config.animatedWalk, Snake1Config.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "Snake1");
+        broadcastSpawnEvent(entity, data, Snake1Config.name);
         return entity;
     }
 
-    @Spawns("HuluSoldier1")
+    @Spawns(HuluSoldier1Config.name)
     public Entity newHuluSoldier1(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(HuluSoldier1Config.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(HuluSoldier1Config.name))
                 .with(new DetailedTypeComponent(HuluSoldier1Config.detailedEntityType, HuluSoldier1Config.campType))
                 .bbox(new HitBox(BoundingShape.box(HuluSoldier1Config.width, HuluSoldier1Config.height)))
                 .with(new ControllableComponent(HuluSoldier1Config.speed))
@@ -253,18 +300,21 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(HuluSoldier1Config.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(HuluSoldier1Config.animatedIdle, HuluSoldier1Config.animatedWalk, HuluSoldier1Config.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "HuluSoldier1");
+        broadcastSpawnEvent(entity, data, HuluSoldier1Config.name);
         return entity;
     }
 
-    @Spawns("HuluSoldier2")
+    @Spawns(HuluSoldier2Config.name)
     public Entity newHuluSoldier2(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(HuluSoldier2Config.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(HuluSoldier2Config.name))
                 .with(new DetailedTypeComponent(HuluSoldier2Config.detailedEntityType, HuluSoldier2Config.campType))
                 .bbox(new HitBox(BoundingShape.box(HuluSoldier2Config.width, HuluSoldier2Config.height)))
                 .with(new ControllableComponent(HuluSoldier2Config.speed))
@@ -272,39 +322,45 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(HuluSoldier2Config.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(HuluSoldier2Config.animatedIdle, HuluSoldier2Config.animatedWalk, HuluSoldier2Config.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "HuluSoldier2");
+        broadcastSpawnEvent(entity, data, HuluSoldier2Config.name);
         return entity;
     }
 
-    @Spawns("HuluSoldier2Bullet")
+    @Spawns(HuluSoldier2Config.bullet.name)
     public Entity newHuluSoldier2Bullet(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
                 .type(HuluSoldier2Config.bullet.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(HuluSoldier2Config.bullet.name))
                 .with(new DetailedTypeComponent(HuluSoldier2Config.bullet.detailedEntityType, HuluSoldier2Config.campType))
                 .bbox(new HitBox(BoundingShape.box(HuluSoldier2Config.bullet.width, HuluSoldier2Config.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
                 .with(new BulletComponent(damage, sourceID, HuluSoldier2Config.bullet.distance))
                 .with(new ItemAnimatedComponent(HuluSoldier2Config.bullet.animatedIdle))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "TestCharacter1Bullet");
+        broadcastSpawnEvent(entity, data, HuluSoldier2Config.bullet.name);
         return entity;
     }
 
-    @Spawns("MonsterSoldier1")
+    @Spawns(MonsterSoldier1Config.name)
     public Entity newMonsterSoldier1(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(MonsterSoldier1Config.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(MonsterSoldier1Config.name))
                 .with(new DetailedTypeComponent(MonsterSoldier1Config.detailedEntityType, MonsterSoldier1Config.campType))
                 .bbox(new HitBox(BoundingShape.box(MonsterSoldier1Config.width, MonsterSoldier1Config.height)))
                 .with(new ControllableComponent(MonsterSoldier1Config.speed))
@@ -312,18 +368,21 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(MonsterSoldier1Config.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(MonsterSoldier1Config.animatedIdle, MonsterSoldier1Config.animatedWalk, MonsterSoldier1Config.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "MonsterSoldier1");
+        broadcastSpawnEvent(entity, data, MonsterSoldier1Config.name);
         return entity;
     }
 
-    @Spawns("MonsterSoldier2")
+    @Spawns(MonsterSoldier2Config.name)
     public Entity newMonsterSoldier2(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         var entity = FXGL.entityBuilder(data)
                 .type(MonsterSoldier2Config.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(MonsterSoldier2Config.name))
                 .with(new DetailedTypeComponent(MonsterSoldier2Config.detailedEntityType, MonsterSoldier2Config.campType))
                 .bbox(new HitBox(BoundingShape.box(MonsterSoldier2Config.width, MonsterSoldier2Config.height)))
                 .with(new ControllableComponent(MonsterSoldier2Config.speed))
@@ -331,39 +390,45 @@ public class HvMFactory implements EntityFactory {
                 .with(new HealthComponent(MonsterSoldier2Config.health))
                 .with(new AIComponent())
                 .with(new PlayerAnimatedComponent(MonsterSoldier2Config.animatedIdle, MonsterSoldier2Config.animatedWalk, MonsterSoldier2Config.animatedAttack))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "MonsterSoldier2");
+        broadcastSpawnEvent(entity, data, MonsterSoldier2Config.name);
         return entity;
     }
 
-    @Spawns("MonsterSoldier2Bullet")
+    @Spawns(MonsterSoldier2Config.bullet.name)
     public Entity newMonsterSoldier2Bullet(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
         int speedX = data.get("speedX");
         int speedY = data.get("speedY");
         int damage = data.get("damage");
         int sourceID = data.get("sourceID");
         var entity = FXGL.entityBuilder(data)
                 .type(MonsterSoldier2Config.bullet.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(MonsterSoldier2Config.bullet.name))
                 .with(new DetailedTypeComponent(MonsterSoldier2Config.bullet.detailedEntityType, MonsterSoldier2Config.campType))
                 .bbox(new HitBox(BoundingShape.box(MonsterSoldier2Config.bullet.width, MonsterSoldier2Config.bullet.height)))
                 .with(new MovableComponent(speedX, speedY))
                 .with(new BulletComponent(damage, sourceID, MonsterSoldier2Config.bullet.distance))
                 .with(new ItemAnimatedComponent(MonsterSoldier2Config.bullet.animatedIdle))
+                .with(spawnDataComponent)
                 .collidable()
                 .build();
 
-        broadcastSpawnEvent(entity, data, "TestCharacter1Bullet");
+        broadcastSpawnEvent(entity, data, MonsterSoldier2Config.bullet.name);
         return entity;
     }
 
     @Spawns("TestCharacter1")
     public Entity newTestCharacter1(SpawnData data) {
+        String spawnName = "TestCharacter1-Enemy";
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
         Entity entity = FXGL.entityBuilder(data)
                 .type(TestCharacter1Config.basicEntityType)
-                .with(new NetworkIDComponent())
+                .with(new NetworkIDComponent(spawnName))
                 .with(new DetailedTypeComponent(TestCharacter1Config.detailedEntityType, TestCharacter1Config.campType))
                 .bbox(new HitBox(BoundingShape.box(TestCharacter1Config.width, TestCharacter1Config.height)))
                 .with(new ControllableComponent(TestCharacter1Config.speed))
@@ -405,28 +470,6 @@ public class HvMFactory implements EntityFactory {
                 .build();
 
         broadcastSpawnEvent(entity, data, "TestCharacter1-Enemy");
-        return entity;
-    }
-
-    @Spawns("Dawa")
-    public Entity newDawa(SpawnData data) {
-        String spawnName = "Dawa";
-        SpawnDataComponent spawnDataComponent = createSpawnData(data);
-        var entity = FXGL.entityBuilder(data)
-                .type(DawaConfig.basicEntityType)
-                .with(new NetworkIDComponent(spawnName))
-                .with(new DetailedTypeComponent(DawaConfig.detailedEntityType, DawaConfig.campType))
-                .bbox(new HitBox(BoundingShape.box(DawaConfig.width, DawaConfig.height)))
-                .with(new ControllableComponent(DawaConfig.speed))
-                .with(new MeleeAttackComponent(DawaConfig.attackAnimationTime, DawaConfig.attackBackSwingTime, DawaConfig.damage, DawaConfig.attackRangeWidth, DawaConfig.attackRangeHeight))
-                .with(new HealthComponent(DawaConfig.health))
-                .with(new AIComponent())
-                .with(new PlayerAnimatedComponent(DawaConfig.animatedIdle, DawaConfig.animatedWalk, DawaConfig.animatedAttack, DawaConfig.attackEffect))
-                .with(spawnDataComponent)
-                .collidable()
-                .build();
-
-        broadcastSpawnEvent(entity, data, "Dawa");
         return entity;
     }
 
@@ -476,16 +519,5 @@ public class HvMFactory implements EntityFactory {
 
         broadcastSpawnEvent(entity, data, "TestCharacter1Bullet-Enemy");
         return entity;
-    }
-    private SpawnDataComponent createSpawnData(SpawnData data) {
-        Bundle bd = new Bundle("");
-        data.getData().forEach((s, o) -> {
-            if(o instanceof Serializable){
-                bd.put(s, (Serializable) o);
-            }
-        });
-        SpawnDataComponent spawnDataComponent = new SpawnDataComponent();
-        spawnDataComponent.read(bd);
-        return spawnDataComponent;
     }
 }
