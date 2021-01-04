@@ -162,6 +162,7 @@ public class Main extends GameApplication {
 
     @Override
     protected void initUI() {
+        FXGL.getGameScene().setBackgroundRepeat("gameBackground.png");
         HBox hBox = new HBox();
 
         Circle circle = new Circle();
@@ -210,116 +211,9 @@ public class Main extends GameApplication {
     protected void initGame() {
         FXGL.getGameWorld().addEntityFactory(new HvMFactory());
         FXGL.getGameScene().getViewport().setBounds(0, 0, Config.GameWidth, Config.GameHeight);
-        Properties props = LoadConfigUtils.getProps();
-        String isserver = (String)props.getOrDefault("isServer","false");
-        String isclient = (String)props.getOrDefault("isClient","false");
-//        System.out.println(isserver);
-//        System.out.println(isclient);
-        boolean isServer = Boolean.parseBoolean(isserver);
-        boolean isClient= Boolean.parseBoolean(isclient);
-//        System.out.println(isServer);
-//        System.out.println(isClient);
-        FXGL.getWorldProperties().setValue("isServer",isServer);
-        FXGL.getWorldProperties().setValue("isClient",isClient);
-//        System.err.println(FXGL.getb("isServer"));
-        if (isServer) {
-            try {
-                new SocketService().serverConnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
-            server.startAsync();
-            FXGL.getWorldProperties().setValue("server", server);
-            server.setOnConnected(bundleConnection -> {
-                NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
-            });
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        if (isClient) {
-            try {
-                new SocketClient().clientConnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Client<Bundle> client = FXGL.getNetService().newUDPClient(props.getProperty("ip"), Config.GameNetworkPort);
-            client.connectAsync();
-            FXGL.getWorldProperties().setValue("client", client);
-            client.setOnConnected(bundleConnection -> {
-                NetworkUtils.getMultiplayerService().addEntityReplicationReceiver(bundleConnection, FXGL.getGameWorld());
-                NetworkUtils.getMultiplayerService().addInputReplicationSender(bundleConnection, FXGL.getGameWorld());
-            });
-        }
-        if (isServer) {
-            boolean b = new Random().nextBoolean();
-            Entity entity = null;
-            FXGL.spawn("Dawa", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
-            Entity enemy = null;
-            if (b) {
-                FXGL.set("campType", CampType.HuluBabyCamp);
-                FXGL.set("opponentCampType",CampType.MonsterCamp);
-
-                entity = FXGL.spawn("Dawa", 0, 10);
-                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
-                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
-                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
-                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
-                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
-                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
-
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
-
-                enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
-            }
-            else{
-                FXGL.set("campType", CampType.MonsterCamp);
-                FXGL.set("opponentCampType",CampType.HuluBabyCamp);
-
-                enemy = FXGL.spawn("Dawa", 0, 10);
-                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
-                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
-                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
-                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
-                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
-                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
-
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
-
-                entity = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
-            }
-            PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
-            Entity finalEnemy = enemy;
-            NetworkUtils.getServer().getConnections().forEach(connection ->  {
-                PropertyUtils.setOpponentPlayerID(EntityUtils.getNetworkID(finalEnemy));
-                Bundle message = new Bundle("PlayerAllocation");
-                message.put("playerID", EntityUtils.getNetworkID(finalEnemy));
-                NetworkUtils.getMultiplayerService().sendMessage(connection, message);
-            });
-
-        }
+        GameUtils.initConnection();
+        GameUtils.initEntity();
+        
         FXGL.getbp("replay").addListener((observableValue, aBoolean, t1) -> {
             if(observableValue.getValue()){
                 Input input = FXGL.getInput();
@@ -419,94 +313,28 @@ public class Main extends GameApplication {
         });
     }
 
-    private VBox show = null;
-
+    private VBox show=null;
     @Override
     protected void onUpdate(double tpf) {
         checkCurrentPlayer();
-        if(GameUtils.detectGameOver()&&!FXGL.getb("finished")&&(FXGL.getb("isServer") || FXGL.getb("isClient"))){
-//            System.err.println("finished");
+        if(GameUtils.detectGameOver()&&!FXGL.getb("finished")&&FXGL.getb("isServer")){
+            FXGL.set("record",false);
+            System.err.println("finished");
             FXGL.set("finished",true);
             PropertyUtils.setCurrentPlayerID(-1);
             boolean isWin = GameUtils.isWin();
-            FXGL.getGameScene().clearGameViews();
-            Texture win = new Texture(FXGL.image("win.png"));
-            Texture lose = new Texture(FXGL.image("lose.png"));
-
-            Rectangle rec = new Rectangle();
-            rec.setWidth(180);
-            rec.setHeight(40);
-            rec.setArcWidth(20);
-            rec.setArcHeight(20);
-
-            Button exit = FXGL.getUIFactoryService().newButton("退出");
-            exit.setMaxHeight(rec.getHeight());
-            exit.setMaxWidth(rec.getWidth());
-            exit.setShape(rec);
-            exit.setTextAlignment(TextAlignment.CENTER);
-            exit.setOnAction(actionEvent -> {
-                File f = new File("./src/config.properties");
-                if(f.exists()){
-                    f.delete();
-                }
-                FXGL.getGameController().exit();
-            });
-            Button goToMenu = FXGL.getUIFactoryService().newButton("返回菜单");
-            goToMenu.setMaxHeight(rec.getHeight());
-            goToMenu.setMaxWidth(rec.getWidth());
-            goToMenu.setShape(rec);
-            goToMenu.setTextAlignment(TextAlignment.CENTER);
-            goToMenu.setOnAction(actionEvent -> {
-                FXGL.getGameScene().getRoot().getChildren().remove(show);
-                if(FXGL.getb("isServer")) {
-                    Server<Bundle> server = NetworkUtils.getServer();
-                    server.stop();
-                }
-                if(FXGL.getb("isClient")){
-                    Client<Bundle> client = NetworkUtils.getClient();
-                    client.disconnect();
-                }
-//                FXGL.getGameController().resumeEngine();
-//                FXGL.getWorldProperties().clear();
-                FXGL.getGameController().gotoMainMenu();
-            });
-            HBox choiceButton = new HBox(20,
-                    exit,
-                    goToMenu);
-
-            if(isWin) {
-                show = new VBox(25,
-                        win,
-                        choiceButton);
-                show.setTranslateX(FXGL.getAppWidth() / 3);
-                show.setTranslateY(FXGL.getAppHeight() / 4);
-                show.setAlignment(Pos.CENTER);
-                System.out.println("win");
-            }
-            else {
-                show = new VBox(25,
-                        lose,
-                        choiceButton);
-                show.setTranslateX(FXGL.getAppWidth() / 3);
-                show.setTranslateY(FXGL.getAppHeight() / 4);
-                show.setAlignment(Pos.CENTER);
-                System.out.println("lose");
-            }
-
-            if (detectRecord()) {
-                VBox finalShow = show;
-                FXGL.getDialogService().showConfirmationBox("检测到存档，是否要保存？", answer -> {
-                    if (answer) {
-                        GameUtils.recordUI();
-                    }
-                    finalShow.setViewOrder(1);
-                    FXGL.getGameScene().getRoot().getChildren().addAll(finalShow);
-                });
+//            FXGL.getGameScene().clearGameViews();
+            Bundle bd = new Bundle("WinOrLoseMessage");
+            if (isWin){
+                bd.put("WinOrLose",false);
+                NetworkUtils.getServer().broadcast(bd);
+                GameUtils.gameOverUI(true);
             }
             else{
-                FXGL.getGameScene().getRoot().getChildren().addAll(show);
+                bd.put("WinOrLose",true);
+                NetworkUtils.getServer().broadcast(bd);
+                GameUtils.gameOverUI(false);
             }
-
         }
         if(FXGL.getb("record")){
             String path = "./temp_record_hulubrother/";
@@ -628,16 +456,6 @@ public class Main extends GameApplication {
         playerIcon = icon;
     }
 
-    protected boolean detectRecord(){
-        File f = new File("./temp_record_hulubrother");
-        if(f.exists()&&f.listFiles().length>0&&!FXGL.getb("replay")){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
     private static class processShow extends Parent {
         private Rectangle rectangle;
         private Rectangle leftProcess;
@@ -664,6 +482,7 @@ public class Main extends GameApplication {
             rightProcess.setWidth(FXGL.getAppWidth()*(1-stop));
         }
     }
+
     public static void main(String[] args) {
         launch(args);
     }

@@ -22,4 +22,5 @@ public class NetworkUtils {
     public static MultiplayerConnectionService getMultiplayerService() {
         return FXGL.getService(MultiplayerConnectionService.class);
     }
+
 }
