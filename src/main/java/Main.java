@@ -312,7 +312,6 @@ public class Main extends GameApplication {
         checkCurrentPlayer();
         if(GameUtils.detectGameOver()&&!FXGL.getb("finished")&&FXGL.getb("isServer")){
             FXGL.set("record",false);
-            System.err.println("finished");
             FXGL.set("finished",true);
             PropertyUtils.setCurrentPlayerID(-1);
             boolean isWin = GameUtils.isWin();
