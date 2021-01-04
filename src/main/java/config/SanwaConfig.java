@@ -28,6 +28,6 @@ public class SanwaConfig {
     public static final double attackAnimationTime = 0.6;
     public static final double attackBackSwingTime = 0.8;
     public static final int damage = 25;
-    public static final int attackRangeWidth = 50;
+    public static final int attackRangeWidth = 40;
     public static final int attackRangeHeight = 60;
 }

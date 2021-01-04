@@ -28,7 +28,7 @@ public class DawaConfig {
 
     public static final double attackAnimationTime = 0.3;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 25;
-    public static final int attackRangeWidth = 50;
-    public static final int attackRangeHeight = 60;
+    public static final int damage = 45;
+    public static final int attackRangeWidth = 40;
+    public static final int attackRangeHeight = 100;
 }

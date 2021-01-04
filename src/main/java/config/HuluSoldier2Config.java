@@ -27,7 +27,7 @@ public class HuluSoldier2Config {
 
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.5;
-    public static final int damage = 12;
+    public static final int damage = 15;
 
     public static class bullet {
         public static final String name = "HuluSoldier2Bullet";

@@ -23,11 +23,11 @@ public class Snake1Config {
 
     public static final int speed = 250;
 
-    public static final int health = 500;
+    public static final int health = 600;
 
     public static final double attackAnimationTime = 0.4;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 35;
-    public static final int attackRangeWidth = 60;
-    public static final int attackRangeHeight = 60;
+    public static final int damage = 45;
+    public static final int attackRangeWidth = 25;
+    public static final int attackRangeHeight = 120;
 }

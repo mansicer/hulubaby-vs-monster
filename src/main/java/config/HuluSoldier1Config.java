@@ -10,7 +10,7 @@ import types.DetailedEntityType;
 public class HuluSoldier1Config {
     public static final String name = "HuluSoldier1";
 
-    public static final int width = 45;
+    public static final int width = 65;
     public static final int height = 60;
 
     public static final AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("HuluSoldier1.png"), 4, width, height, Duration.seconds(1), 0, 0);
@@ -23,11 +23,11 @@ public class HuluSoldier1Config {
 
     public static final int speed = 150;
 
-    public static final int health = 150;
+    public static final int health = 200;
 
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.5;
-    public static final int damage = 10;
-    public static final int attackRangeWidth = 45;
+    public static final int damage = 14;
+    public static final int attackRangeWidth = 20;
     public static final int attackRangeHeight = 60;
 }

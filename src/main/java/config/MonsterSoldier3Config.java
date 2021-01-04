@@ -28,6 +28,6 @@ public class MonsterSoldier3Config {
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.5;
     public static final int damage = 20;
-    public static final int attackRangeWidth = 60;
+    public static final int attackRangeWidth = 20;
     public static final int attackRangeHeight = 60;
 }

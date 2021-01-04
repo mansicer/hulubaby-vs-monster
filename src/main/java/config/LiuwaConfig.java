@@ -28,6 +28,6 @@ public class LiuwaConfig {
     public static final double attackAnimationTime = 0.3;
     public static final double attackBackSwingTime = 0.3;
     public static final int damage = 20;
-    public static final int attackRangeWidth = 50;
+    public static final int attackRangeWidth = 40;
     public static final int attackRangeHeight = 60;
 }

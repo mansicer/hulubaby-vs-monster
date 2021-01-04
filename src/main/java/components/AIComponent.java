@@ -67,6 +67,7 @@ public class AIComponent extends Component {
                 else if (closestEnemy.getX() - entity.getX() > 0) {
                     controllableComponent.moveRight();
                 }
+
             }
             else {
                 controllableComponent.stopX();
