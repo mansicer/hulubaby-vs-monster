@@ -37,12 +37,10 @@ public class MeleeAttackComponent extends AttackComponent {
             x -= attackRangeWidth;
         }
         double y = entity.getY() + entity.getHeight() / 2 - attackRangeHeight / 2;
-
         Rectangle2D range = new Rectangle2D(x, y, attackRangeWidth, attackRangeHeight);
         List<Entity> entityList = FXGL.getGameWorld().getEntitiesInRange(range);
         entityList.removeIf(e -> !e.hasComponent(ControllableComponent.class));
         entityList.removeIf(e -> !EntityUtils.isEnemy(entity, e));
-//        System.err.println(entityList.size());
         for (Entity e : entityList) {
             e.getComponent(HealthComponent.class).decreaseHealth(damage);
         }
@@ -57,7 +55,7 @@ public class MeleeAttackComponent extends AttackComponent {
         if (scaleX > 0) {
             relativeDistance = scaleX * (ox - ix - entity.getWidth());
         } else {
-            relativeDistance = scaleX * (ox - ix - enemy.getWidth());
+            relativeDistance = scaleX * (ox - ix + enemy.getWidth());
         }
         if (relativeDistance >= 0 && relativeDistance <= attackRangeWidth) {
             return true;

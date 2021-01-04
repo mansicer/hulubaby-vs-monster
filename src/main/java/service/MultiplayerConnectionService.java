@@ -20,6 +20,7 @@ import kotlin.collections.ArrayDeque;
 import types.CampType;
 import util.ComponentUtils;
 import util.EntityUtils;
+import util.GameUtils;
 import util.PropertyUtils;
 
 import java.io.Serializable;
@@ -32,6 +33,10 @@ public class MultiplayerConnectionService extends EngineService {
 
     public MultiplayerConnectionService(){
         replicatedEntitiesMap = new HashMap<>();
+    }
+
+    public void clearReplicatedEntitiesMap() {
+        this.replicatedEntitiesMap.clear();
     }
 
     @Override
@@ -141,6 +146,10 @@ public class MultiplayerConnectionService extends EngineService {
                     int id = bundle.get("playerID");
                     PropertyUtils.setCurrentPlayerID(id);
                 }
+            }
+            else if(bundle.getName().startsWith("WinOrLoseMessage")){
+                boolean winOrLose = bundle.get("WinOrLose");
+                GameUtils.gameOverUI(winOrLose);
             }
         });
     }

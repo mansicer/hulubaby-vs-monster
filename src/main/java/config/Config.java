@@ -16,6 +16,6 @@ public class Config {
     public static final String GameTitle = "Hulubabies vs Monsters";
     public static final int GameWidth = 1080;
     public static final int GameHeight = 600;
-    public static final String GameVersion = "0.1.0";
+    public static final String GameVersion = "0.5.0";
     public static final int GameNetworkPort = 6657;
 }

@@ -8,6 +8,8 @@ import types.CampType;
 import types.DetailedEntityType;
 
 public class TestCharacter1EnemyConfig {
+    public static final String name = "TestCharacter1Enemy";
+
     public static final int width = 32;
     public static final int height = 48;
 
@@ -20,7 +22,7 @@ public class TestCharacter1EnemyConfig {
 
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 100;
+    public static final int damage = 25;
 
     public static final AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, width, height, Duration.seconds(1), 1, 1);
     public static final AnimationChannel animatedWalk = new AnimationChannel(FXGL.image("TestCharacter1.png"), 4, width, height, Duration.seconds(1), 0, 3);

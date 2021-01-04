@@ -40,7 +40,6 @@ public class EntityUtils {
         CampType bCamp = b.getComponent(DetailedTypeComponent.class).getCampType();
         return !aCamp.equals(bCamp);
     }
-
     public static List<Entity> getEnemies(Entity currentEntity) {
         List<Entity> entities = FXGL.getGameWorld().getEntitiesByComponent(ControllableComponent.class);
         List<Entity> enemyEntities = new ArrayList<>();
@@ -51,15 +50,13 @@ public class EntityUtils {
         }
         return enemyEntities;
     }
-
     public static void registerEntityTimer(Duration time, int entityID, Consumer<Entity> func) {
-        Entity entity = getEntityByNetworkID(entityID).get();
-        FXGL.runOnce(() -> {
-            if (entity.isActive()) {
-                func.accept(entity);
-            }
-        }, time);
+        getEntityByNetworkID(entityID).ifPresent(e -> {
+            FXGL.runOnce(() -> {
+                if (e.isActive()) {
+                    func.accept(e);
+                }
+            }, time);
+        });
     }
-
-//    public static boolean isGameOver()
 }

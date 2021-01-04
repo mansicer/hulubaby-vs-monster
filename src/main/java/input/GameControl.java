@@ -4,23 +4,10 @@ import com.almasb.fxgl.core.serialization.Bundle;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.input.UserAction;
-import com.almasb.fxgl.ui.MDIWindow;
-import components.NetworkIDComponent;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 import util.EntityUtils;
 import util.GameUtils;
 import util.NetworkUtils;
-import util.ZipUtils;
+import util.PropertyUtils;
 
 import java.io.File;
 
@@ -33,16 +20,32 @@ public class GameControl {
         @Override
         protected void onActionBegin() {
             if (FXGL.getWorldProperties().getBoolean("isServer")) {
-                Entity entity = FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() / 3);
-                FXGL.spawn("TestCharacter1", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
-                Entity enemy = FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() / 3);
-                FXGL.spawn("TestCharacter1-Enemy", FXGL.getAppWidth() * 2 / 3, FXGL.getAppHeight() * 2 / 3);
+                // spawn Hulubabies
+                Entity entity = FXGL.spawn("Dawa", 0, 10);
+                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
+                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
+                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
+                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
+                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
+                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
 
-                FXGL.getWorldProperties().setValue("CurrentPlayerID", entity.getComponent(NetworkIDComponent.class).getId());
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
 
-                Bundle message = new Bundle("PlayerAllocation");
-                message.put("playerID", EntityUtils.getNetworkID(enemy));
-                NetworkUtils.getServer().getConnections().forEach(connection ->  {
+                Entity enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
+
+                PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
+
+                NetworkUtils.getServer().getConnections().forEach(connection -> {
+                    PropertyUtils.setOpponentPlayerID(EntityUtils.getNetworkID(enemy));
+                    Bundle message = new Bundle("PlayerAllocation");
+                    message.put("playerID", EntityUtils.getNetworkID(enemy));
                     NetworkUtils.getMultiplayerService().sendMessage(connection, message);
                 });
             }
