@@ -263,22 +263,22 @@ public class GameUtils {
         FXGL.getWorldProperties().setValue("isClient",isClient);
 //        System.err.println(FXGL.getb("isServer"));
         if (isServer) {
-            try {
-                new SocketService().serverConnect();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                new SocketService().serverConnect();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TimeUnit.SECONDS.sleep(2);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
         if (isClient) {
             try {
@@ -311,48 +311,54 @@ public class GameUtils {
                 FXGL.set("campType", CampType.HuluBabyCamp);
                 FXGL.set("opponentCampType",CampType.MonsterCamp);
 
-                entity = FXGL.spawn("Dawa", 0, 10);
-                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
-                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
-                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
-                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
-                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
-                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
+                entity = FXGL.spawn("Dawa", 0, (double) FXGL.getAppHeight() / 8);
 
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
-
-                enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
+                enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() - 80,  (double) FXGL.getAppHeight() / 3);
             }
             else{
                 FXGL.set("campType", CampType.MonsterCamp);
                 FXGL.set("opponentCampType",CampType.HuluBabyCamp);
 
-                enemy = FXGL.spawn("Dawa", 0, 10);
-                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
-                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
-                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
-                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
-                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
-                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
-
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
-
-                entity = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
-                FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
-                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
+                enemy = FXGL.spawn("Dawa", 0, (double) FXGL.getAppHeight() / 8);
+                entity = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() - 80,  (double) FXGL.getAppHeight() / 3);
             }
+
+            FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() * 2 / 8);
+            FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 3 / 8);
+            FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 4 / 8);
+            FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 5 / 8);
+            FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 6 / 8);
+            FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 7 / 8);
+
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
+            FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
+
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 180);
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 240);
+            FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2 - 180);
+
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 180);
+            FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 240);
+            FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2 + 180);
+
+
+            FXGL.spawn("Snake2", (double) FXGL.getAppWidth() - 80,  (double) FXGL.getAppHeight() * 2 / 3);
+
+            FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 70);
+            FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
+            FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 70);
+            FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
+
+            FXGL.spawn("MonsterSoldier3", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 180);
+            FXGL.spawn("MonsterSoldier3", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 240);
+            FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2 - 180);
+
+            FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 180);
+            FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 240);
+            FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2 + 180);
+
             PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
             Entity finalEnemy = enemy;
             NetworkUtils.getServer().getConnections().forEach(connection ->  {

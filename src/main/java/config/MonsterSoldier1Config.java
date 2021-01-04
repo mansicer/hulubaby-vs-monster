@@ -23,11 +23,11 @@ public class MonsterSoldier1Config {
 
     public static final int speed = 150;
 
-    public static final int health = 150;
+    public static final int health = 400;
 
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.5;
-    public static final int damage = 10;
+    public static final int damage = 15;
     public static final int attackRangeWidth = 60;
     public static final int attackRangeHeight = 60;
 }

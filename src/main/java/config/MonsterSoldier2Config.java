@@ -23,11 +23,11 @@ public class MonsterSoldier2Config {
 
     public static final int speed = 150;
 
-    public static final int health = 100;
+    public static final int health = 200;
 
     public static final double attackAnimationTime = 0.5;
     public static final double attackBackSwingTime = 0.5;
-    public static final int damage = 12;
+    public static final int damage = 30;
 
     public static class bullet {
         public static final String name = "MonsterSoldier2Bullet";

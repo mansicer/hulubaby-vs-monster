@@ -21,13 +21,13 @@ public class Snake1Config {
     public static final DetailedEntityType detailedEntityType = DetailedEntityType.Snake1;
     public static final CampType campType = CampType.MonsterCamp;
 
-    public static final int speed = 150;
+    public static final int speed = 250;
 
-    public static final int health = 400;
+    public static final int health = 500;
 
     public static final double attackAnimationTime = 0.4;
     public static final double attackBackSwingTime = 0.4;
-    public static final int damage = 30;
+    public static final int damage = 35;
     public static final int attackRangeWidth = 60;
     public static final int attackRangeHeight = 60;
 }

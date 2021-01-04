@@ -21,24 +21,46 @@ public class GameControl {
         protected void onActionBegin() {
             if (FXGL.getWorldProperties().getBoolean("isServer")) {
                 // spawn Hulubabies
-                Entity entity = FXGL.spawn("Dawa", 0, 10);
-                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() / 7);
-                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 2 / 7);
-                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 3 / 7);
-                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 4 / 7);
-                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 5 / 7);
-                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 6 / 7);
+                Entity entity = FXGL.spawn("Dawa", 0, (double) FXGL.getAppHeight() / 8);
+                FXGL.spawn("Erwa", 0,  (double) FXGL.getAppHeight() * 2 / 8);
+                FXGL.spawn("Sanwa", 0,  (double) FXGL.getAppHeight() * 3 / 8);
+                FXGL.spawn("Siwa", 0,  (double) FXGL.getAppHeight() * 4 / 8);
+                FXGL.spawn("Wuwa", 0,  (double) FXGL.getAppHeight() * 5 / 8);
+                FXGL.spawn("Liuwa", 0,  (double) FXGL.getAppHeight() * 6 / 8);
+                FXGL.spawn("Qiwa", 0,  (double) FXGL.getAppHeight() * 7 / 8);
 
                 FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
                 FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
                 FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
                 FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
 
-                Entity enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  0);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 4 - 60);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 4);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 4 + 60);
+                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
+
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 - 60);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2);
+                FXGL.spawn("HuluSoldier1", (double) FXGL.getAppWidth() / 4, (double) FXGL.getAppHeight() / 2 + 60);
+                FXGL.spawn("HuluSoldier2", (double) FXGL.getAppWidth() / 4 - 60, (double) FXGL.getAppHeight() / 2);
+
+                Entity enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() * 3 / 4,  (double) FXGL.getAppHeight() / 3);
+                FXGL.spawn("Snake2", (double) FXGL.getAppWidth() * 3 / 4,  (double) FXGL.getAppHeight() * 2 / 3);
+
+                FXGL.spawn("MonsterSoldier3", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 4);
+                FXGL.spawn("MonsterSoldier3", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 4 - 60);
+                FXGL.spawn("MonsterSoldier3", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 4 - 60);
+                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 4 + 60);
+
                 FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 60);
                 FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2);
                 FXGL.spawn("MonsterSoldier1", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 60);
                 FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() / 2);
+
+                FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() * 3 / 4);
+                FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() * 3 / 4 - 60);
+                FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() * 3 / 4 + 60);
+                FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 60, (double) FXGL.getAppHeight() * 3 / 4);
 
                 PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
 

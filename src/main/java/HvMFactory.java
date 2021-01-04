@@ -264,28 +264,6 @@ public class HvMFactory implements EntityFactory {
         return entity;
     }
 
-    @Spawns(Snake1Config.name)
-    public Entity newSnake1(SpawnData data) {
-        SpawnDataComponent spawnDataComponent = createSpawnData(data);
-
-        var entity = FXGL.entityBuilder(data)
-                .type(Snake1Config.basicEntityType)
-                .with(new NetworkIDComponent(Snake1Config.name))
-                .with(new DetailedTypeComponent(Snake1Config.detailedEntityType, Snake1Config.campType))
-                .bbox(new HitBox(BoundingShape.box(Snake1Config.width, Snake1Config.height)))
-                .with(new ControllableComponent(Snake1Config.speed))
-                .with(new MeleeAttackComponent(Snake1Config.attackAnimationTime, Snake1Config.attackBackSwingTime, Snake1Config.damage, Snake1Config.attackRangeWidth, Snake1Config.attackRangeHeight))
-                .with(new HealthComponent(Snake1Config.health))
-                .with(new AIComponent())
-                .with(new PlayerAnimatedComponent(Snake1Config.animatedIdle, Snake1Config.animatedWalk, Snake1Config.animatedAttack))
-                .with(spawnDataComponent)
-                .collidable()
-                .build();
-
-        broadcastSpawnEvent(entity, data, Snake1Config.name);
-        return entity;
-    }
-
     @Spawns(HuluSoldier1Config.name)
     public Entity newHuluSoldier1(SpawnData data) {
         SpawnDataComponent spawnDataComponent = createSpawnData(data);
@@ -354,6 +332,74 @@ public class HvMFactory implements EntityFactory {
         return entity;
     }
 
+    @Spawns(Snake1Config.name)
+    public Entity newSnake1(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
+        var entity = FXGL.entityBuilder(data)
+                .type(Snake1Config.basicEntityType)
+                .with(new NetworkIDComponent(Snake1Config.name))
+                .with(new DetailedTypeComponent(Snake1Config.detailedEntityType, Snake1Config.campType))
+                .bbox(new HitBox(BoundingShape.box(Snake1Config.width, Snake1Config.height)))
+                .with(new ControllableComponent(Snake1Config.speed))
+                .with(new MeleeAttackComponent(Snake1Config.attackAnimationTime, Snake1Config.attackBackSwingTime, Snake1Config.damage, Snake1Config.attackRangeWidth, Snake1Config.attackRangeHeight))
+                .with(new HealthComponent(Snake1Config.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(Snake1Config.animatedIdle, Snake1Config.animatedWalk, Snake1Config.animatedAttack))
+                .with(spawnDataComponent)
+                .collidable()
+                .build();
+
+        broadcastSpawnEvent(entity, data, Snake1Config.name);
+        return entity;
+    }
+
+    @Spawns(Snake2Config.name)
+    public Entity newSnake2(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
+        var entity = FXGL.entityBuilder(data)
+                .type(Snake2Config.basicEntityType)
+                .with(new NetworkIDComponent(Snake2Config.name))
+                .with(new DetailedTypeComponent(Snake2Config.detailedEntityType, Snake2Config.campType))
+                .bbox(new HitBox(BoundingShape.box(Snake2Config.width, Snake2Config.height)))
+                .with(new ControllableComponent(Snake2Config.speed))
+                .with(new RangedAttackComponent(Snake2Config.attackAnimationTime, Snake2Config.attackBackSwingTime, Snake2Config.damage, Snake2Config.bullet.speed, Snake2Config.bullet.name, Snake2Config.bullet.height, Snake2Config.bullet.distance))
+                .with(new HealthComponent(Snake2Config.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(Snake2Config.animatedIdle, Snake2Config.animatedWalk, Snake2Config.animatedAttack))
+                .with(spawnDataComponent)
+                .collidable()
+                .build();
+
+        broadcastSpawnEvent(entity, data, Snake2Config.name);
+        return entity;
+    }
+
+    @Spawns(Snake2Config.bullet.name)
+    public Entity newHuluSnake2Bullet(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
+        int speedX = data.get("speedX");
+        int speedY = data.get("speedY");
+        int damage = data.get("damage");
+        int sourceID = data.get("sourceID");
+        var entity = FXGL.entityBuilder(data)
+                .type(Snake2Config.bullet.basicEntityType)
+                .with(new NetworkIDComponent(Snake2Config.bullet.name))
+                .with(new DetailedTypeComponent(Snake2Config.bullet.detailedEntityType, Snake2Config.campType))
+                .bbox(new HitBox(BoundingShape.box(Snake2Config.bullet.width, Snake2Config.bullet.height)))
+                .with(new MovableComponent(speedX, speedY))
+                .with(new BulletComponent(damage, sourceID, Snake2Config.bullet.distance))
+                .with(new ItemAnimatedComponent(Snake2Config.bullet.animatedIdle))
+                .with(spawnDataComponent)
+                .collidable()
+                .build();
+
+        broadcastSpawnEvent(entity, data, Snake2Config.bullet.name);
+        return entity;
+    }
+
     @Spawns(MonsterSoldier1Config.name)
     public Entity newMonsterSoldier1(SpawnData data) {
         SpawnDataComponent spawnDataComponent = createSpawnData(data);
@@ -419,6 +465,50 @@ public class HvMFactory implements EntityFactory {
                 .build();
 
         broadcastSpawnEvent(entity, data, MonsterSoldier2Config.bullet.name);
+        return entity;
+    }
+
+    @Spawns(MonsterSoldier3Config.name)
+    public Entity newMonsterSoldier3(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
+        var entity = FXGL.entityBuilder(data)
+                .type(MonsterSoldier3Config.basicEntityType)
+                .with(new NetworkIDComponent(MonsterSoldier3Config.name))
+                .with(new DetailedTypeComponent(MonsterSoldier3Config.detailedEntityType, MonsterSoldier3Config.campType))
+                .bbox(new HitBox(BoundingShape.box(MonsterSoldier3Config.width, MonsterSoldier3Config.height)))
+                .with(new ControllableComponent(MonsterSoldier3Config.speed))
+                .with(new MeleeAttackComponent(MonsterSoldier3Config.attackAnimationTime, MonsterSoldier3Config.attackBackSwingTime, MonsterSoldier3Config.damage, MonsterSoldier3Config.attackRangeWidth, MonsterSoldier3Config.attackRangeHeight))
+                .with(new HealthComponent(MonsterSoldier3Config.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(MonsterSoldier3Config.animatedIdle, MonsterSoldier3Config.animatedWalk, MonsterSoldier3Config.animatedAttack))
+                .with(spawnDataComponent)
+                .collidable()
+                .build();
+
+        broadcastSpawnEvent(entity, data, MonsterSoldier3Config.name);
+        return entity;
+    }
+
+    @Spawns(MonsterSoldier4Config.name)
+    public Entity newMonsterSoldier4(SpawnData data) {
+        SpawnDataComponent spawnDataComponent = createSpawnData(data);
+
+        var entity = FXGL.entityBuilder(data)
+                .type(MonsterSoldier4Config.basicEntityType)
+                .with(new NetworkIDComponent(MonsterSoldier4Config.name))
+                .with(new DetailedTypeComponent(MonsterSoldier4Config.detailedEntityType, MonsterSoldier4Config.campType))
+                .bbox(new HitBox(BoundingShape.box(MonsterSoldier4Config.width, MonsterSoldier4Config.height)))
+                .with(new ControllableComponent(MonsterSoldier4Config.speed))
+                .with(new MeleeAttackComponent(MonsterSoldier4Config.attackAnimationTime, MonsterSoldier4Config.attackBackSwingTime, MonsterSoldier4Config.damage, MonsterSoldier4Config.attackRangeWidth, MonsterSoldier4Config.attackRangeHeight))
+                .with(new HealthComponent(MonsterSoldier4Config.health))
+                .with(new AIComponent())
+                .with(new PlayerAnimatedComponent(MonsterSoldier4Config.animatedIdle, MonsterSoldier4Config.animatedWalk, MonsterSoldier4Config.animatedAttack))
+                .with(spawnDataComponent)
+                .collidable()
+                .build();
+
+        broadcastSpawnEvent(entity, data, MonsterSoldier4Config.name);
         return entity;
     }
 
