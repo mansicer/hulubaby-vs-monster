@@ -147,6 +147,9 @@ public class GameMenu extends FXGLMenu {
         private String description;
 
         public menuButton(String name,String description,Runnable action){
+            File file = new File("./src");
+            if(!file.exists())
+                file.mkdir();
             this.name = name;
             this.action = action;
             this.description = description;
