@@ -263,22 +263,22 @@ public class GameUtils {
         FXGL.getWorldProperties().setValue("isClient",isClient);
 //        System.err.println(FXGL.getb("isServer"));
         if (isServer) {
-//            try {
-//                new SocketService().serverConnect();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                new SocketService().serverConnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Server<Bundle> server = FXGL.getNetService().newUDPServer(Config.GameNetworkPort);
             server.startAsync();
             FXGL.getWorldProperties().setValue("server", server);
             server.setOnConnected(bundleConnection -> {
                 NetworkUtils.getMultiplayerService().addInputReplicationReceiver(bundleConnection);
             });
-//            try {
-//                TimeUnit.SECONDS.sleep(2);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         if (isClient) {
             try {
