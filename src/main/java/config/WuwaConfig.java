@@ -39,7 +39,7 @@ public class WuwaConfig {
         public static final int height = 60;
 
         public static final int speed = 350;
-        public static final int distance = 800;
+        public static final int distance = 600;
 
         public static final AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("water.png"), 10, width, height, Duration.seconds(1), 0, 9);
     }

@@ -241,25 +241,8 @@ public class Main extends GameApplication {
         }
     }
 
-//    private VBox vBox;
-//    private void waitConnect(){
-//        var progressIndicator = new ProgressIndicator();
-//        Label label = new Label("等待连接中, 请稍后...");
-//        label.setTextFill(Color.BLUE);
-//        label.setTranslateX(-20);
-//        progressIndicator.setProgress(-1F);
-//        vBox = new VBox();
-//        vBox.setSpacing(10);
-//        vBox.setTranslateX(FXGL.getAppWidth()/2-30);
-//        vBox.setTranslateY(FXGL.getAppHeight()/3);
-//        vBox.setBackground(Background.EMPTY);
-//        vBox.getChildren().addAll(progressIndicator,label);
-//        FXGL.addUINode(vBox);
-//    }
-
     @Override
     protected void initGameVars(Map<String, Object> vars) {
-        System.err.println("vars");
         vars.put("isServer", false);
         vars.put("isClient", false);
         vars.put("CurrentPlayerID", -1);
@@ -271,7 +254,14 @@ public class Main extends GameApplication {
         File f = new File("./temp_replay_hulubrother");
         if(!f.exists())
             f.mkdir();
-        vars.put("files",f.listFiles());
+        File [] filelist = f.listFiles();
+        Arrays.sort(filelist, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        vars.put("files", filelist);
         vars.put("now",0);
         if(!replay){
             vars.put("server", Optional.empty());
@@ -454,7 +444,7 @@ public class Main extends GameApplication {
         var icon = new Polygon(0, 0, ICON_WIDTH, 0, ICON_WIDTH / 2, ICON_HEIGHT);
         icon.setLayoutY(-10 - ICON_HEIGHT - 3);
         icon.setLayoutX(player.getWidth() / 2 - ICON_WIDTH / 2);
-        icon.setFill(Color.BLUE);
+        icon.setFill(Color.RED);
         player.getViewComponent().addChild(icon);
         playerIcon = icon;
     }

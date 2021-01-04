@@ -39,7 +39,7 @@ public class ErwaConfig {
         public static final int height = 30;
 
         public static final int speed = 600;
-        public static final int distance = 1000;
+        public static final int distance = 600;
 
         public static final AnimationChannel animatedIdle = new AnimationChannel(FXGL.image("TestCharacter1Bullet.png"), 4, width, height, Duration.seconds(1), 0, 3);
     }

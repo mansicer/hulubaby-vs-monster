@@ -222,7 +222,6 @@ public class GameUtils {
             show.setTranslateX(FXGL.getAppWidth() / 3);
             show.setTranslateY(FXGL.getAppHeight() / 4);
             show.setAlignment(Pos.CENTER);
-            System.out.println("win");
         }
         else {
             show = new VBox(25,
@@ -231,7 +230,6 @@ public class GameUtils {
             show.setTranslateX(FXGL.getAppWidth() / 3);
             show.setTranslateY(FXGL.getAppHeight() / 4);
             show.setAlignment(Pos.CENTER);
-            System.out.println("lose");
         }
 
         if (GameUtils.detectRecord()) {
@@ -353,8 +351,7 @@ public class GameUtils {
             FXGL.spawn("MonsterSoldier3", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 - 250);
             FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 80, (double) FXGL.getAppHeight() / 2 - 180);
 
-            FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 180);
-            FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 250);
+            FXGL.spawn("MonsterSoldier4", (double) FXGL.getAppWidth() * 3 / 4, (double) FXGL.getAppHeight() / 2 + 230);
             FXGL.spawn("MonsterSoldier2", (double) FXGL.getAppWidth() * 3 / 4 + 80, (double) FXGL.getAppHeight() / 2 + 180);
 
             PropertyUtils.setCurrentPlayerID(EntityUtils.getNetworkID(entity));
@@ -366,6 +363,11 @@ public class GameUtils {
                 NetworkUtils.getMultiplayerService().sendMessage(connection, message);
             });
 
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

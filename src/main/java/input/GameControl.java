@@ -141,7 +141,7 @@ public class GameControl {
             int now = FXGL.geti("now");
             if(now+125< files.length-1) {
                 for(int i=now;i<now+125;i++){
-                    FXGL.getSaveLoadService().readAndLoadTask(files[i].toString().split("\\\\",2)[1]).run();
+                    FXGL.getSaveLoadService().readAndLoadTask(files[i].toString().replace("\\", "/").split("/",2)[1]).run();
                 }
                 FXGL.set("now", FXGL.geti("now")+125);
             }

@@ -313,7 +313,6 @@ public class GameMenu extends FXGLMenu {
         isLoad.setOnAction(actionEvent -> {
             String selectedItem = (String) tableView.getSelectionModel().getSelectedItem();
             if(selectedItem!=null) {
-                System.out.println(selectedItem);
                 ZipUtils.unzip("./hulu_record_video/" + selectedItem + "_hulu_recordVideo.zip", "./temp_replay_hulubrother");
                 fireNewGame();
             }
@@ -353,7 +352,6 @@ public class GameMenu extends FXGLMenu {
             Stage stage = new Stage();
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(stage);
-//            System.out.println(file.getName());
             if(file!=null&&file.exists()&&file.getName().endsWith("_hulu_recordVideo.zip")){
                 try {
                     int byteread = 0;
