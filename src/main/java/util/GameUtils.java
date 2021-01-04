@@ -305,14 +305,12 @@ public class GameUtils {
         if (FXGL.getb("isServer")) {
             boolean b = new Random().nextBoolean();
             Entity entity = null;
-            FXGL.spawn("Dawa", FXGL.getAppWidth() / 3, FXGL.getAppHeight() * 2 / 3);
             Entity enemy = null;
             if (b) {
                 FXGL.set("campType", CampType.HuluBabyCamp);
                 FXGL.set("opponentCampType",CampType.MonsterCamp);
 
                 entity = FXGL.spawn("Dawa", 0, (double) FXGL.getAppHeight() / 8);
-
                 enemy = FXGL.spawn("Snake1", (double) FXGL.getAppWidth() - 80,  (double) FXGL.getAppHeight() / 3);
             }
             else{
