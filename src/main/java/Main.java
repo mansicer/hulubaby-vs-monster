@@ -111,7 +111,10 @@ public class Main extends GameApplication {
                         ArrayList<Integer> removeIDs = (ArrayList<Integer>) value;
                         for(int id:removeIDs){
 //                            System.err.println(id);
-                            EntityUtils.getEntityByNetworkID(id).get().removeFromWorld();
+                            Optional<Entity> entityByNetworkID = EntityUtils.getEntityByNetworkID(id);
+                            entityByNetworkID.ifPresent(entity -> {
+                                entity.removeFromWorld();
+                            });
                         }
                     }
                     else if(name.equals("vars")){
@@ -346,7 +349,7 @@ public class Main extends GameApplication {
             FXGL.set("isServer",false);
             File[] files = FXGL.geto("files");
             int now = FXGL.geti("now");
-            FXGL.getSaveLoadService().readAndLoadTask(files[now].toString().split("\\\\",2)[1]).run();
+            FXGL.getSaveLoadService().readAndLoadTask(files[now].toString().replace("\\","/").split("/",2)[1]).run();
             if(now< files.length -1 && !FXGL.getb("pause")){
                 FXGL.set("now",now+1);
             }

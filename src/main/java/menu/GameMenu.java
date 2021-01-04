@@ -283,9 +283,9 @@ public class GameMenu extends FXGLMenu {
         ObservableList<String> videoFiles = FXCollections.observableArrayList();
         if(f.exists()) {
             File[] files = f.listFiles();
-            String pattern = "hulu_record_video\\\\(.*?)_hulu_recordVideo\\.zip";
+            String pattern = "hulu_record_video/(.*?)_hulu_recordVideo\\.zip";
             for (int i = 0; i < files.length; i++) {
-                Matcher matcher = Pattern.compile(pattern).matcher(files[i].toString());
+                Matcher matcher = Pattern.compile(pattern).matcher(files[i].toString().replace("\\","/"));
                 if (matcher.find()) {
                     videoFiles.add(matcher.group(1));
                 }
