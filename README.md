@@ -74,8 +74,8 @@ java -jar target/hulubaby-vs-monster-1.0-jar-with-dependencies.jar
 
 ## 项目分工
 
-- 张福翔-171840514: 游戏基本逻辑, 游戏美术素材收集, 游戏AI实现.
-- 孙润来-171860521: 网络通信功能, 录像与回放功能, 游戏界面与UI设计.
+- 171840514: 游戏基本逻辑, 游戏美术素材收集, 游戏AI实现.
+- 171860521: 网络通信功能, 录像与回放功能, 游戏界面与UI设计.
 
 
 
@@ -157,10 +157,6 @@ TODO:
 - 创建`UserAction`类
 - 在对应的执行方法中添加Server和Client两种情况下的处理 (Client端需要发消息给Server)
 - 在`MultiplayerConnectionService`中添加Serve对该消息的处理
-
-### 0.4.0 (2021-01-04)
-
-添加葫芦娃系列的更多角色.
 
 ### 0.2.1 (2021-01-01)
 
